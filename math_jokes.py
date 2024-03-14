@@ -17,7 +17,17 @@ def execute_pdf(jokes, user_dict):
 
     filename = "math_jokes_" + this_joke.get("filename") + ".pdf"
     this_pdf.output(filename)
-    display_pdf(filename)
+    with open(filename, "rb") as f:
+        st.download_button("Download pdf", f, filename)
+
+    # display_pdf(filename)
+
+    # st.download_button(
+    #     label="Download PDF",
+    #     data=this_pdf.output(filename),
+    #     file_name=filename,
+    #     mime="application/pdf",
+    # )
 
     return True
 
