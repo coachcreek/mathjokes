@@ -1,0 +1,338 @@
+/* ============================================================
+   base.css — Base styles for all web-apps projects
+
+   PURPOSE:
+   This file is meant to be included in every app inside web-apps/.
+   It provides a consistent visual foundation so that individual
+   apps can focus on their own unique styles.
+
+   WHAT THIS FILE DOES:
+   1. CSS Reset   — removes inconsistent browser defaults
+   2. CSS Custom Properties (variables) — defines a color
+      palette, spacing scale, and typography scale
+   3. Base element styles — sensible defaults for html, body, links
+   4. Utility classes — small reusable helpers (hide, center, etc.)
+
+   HOW CSS CUSTOM PROPERTIES WORK:
+   Variables are declared with a "--" prefix inside :root (which
+   targets the <html> element). They are used anywhere with var().
+
+   Example:
+       :root { --color-primary: #2563eb; }
+       button { background-color: var(--color-primary); }
+
+   You can override any variable in an app's own stylesheet by
+   re-declaring it inside :root in that stylesheet.
+   ============================================================ */
+
+
+/* ============================================================
+   SECTION 1 — CSS RESET
+   Browsers apply built-in "user agent" styles (margins, padding,
+   font sizes, etc.) that differ between Chrome, Firefox, Safari.
+   This reset removes those defaults so our own styles apply
+   consistently everywhere.
+   ============================================================ */
+
+/*
+   The * selector matches EVERY element on the page.
+   ::before and ::after are "pseudo-elements" — they are
+   invisible elements that can be added before/after content
+   via CSS, and also need to be reset.
+*/
+*,
+*::before,
+*::after {
+    /*
+       box-sizing: border-box — By default (content-box), when you
+       set width: 200px on an element, padding and border are ADDED
+       on top of that, making the element wider than 200px.
+       border-box changes this so padding and border are INCLUDED
+       in the 200px. This is almost always what you want and makes
+       layout math much more predictable.
+    */
+    box-sizing: border-box;
+
+    /* Remove all built-in margin and padding */
+    margin: 0;
+    padding: 0;
+}
+
+
+/* ============================================================
+   SECTION 2 — CSS CUSTOM PROPERTIES (VARIABLES)
+   :root targets the <html> element. Variables declared here are
+   available everywhere on the page.
+   ============================================================ */
+
+:root {
+
+    /* ------------------------------------------
+       COLOR PALETTE
+       These colors form a cohesive system.
+       "primary" = the main brand color (used for buttons, links)
+       "surface" = backgrounds for cards and panels
+       "text"    = the readable text color
+       ------------------------------------------ */
+
+    --color-primary:       #2563eb;   /* Bright blue — buttons, links, focus rings */
+    --color-primary-dark:  #1d4ed8;   /* Darker blue — hover/active state of primary */
+    --color-primary-light: #dbeafe;   /* Very light blue — subtle highlights */
+
+    --color-accent:        #f59e0b;   /* Amber — decorative highlights */
+
+    --color-success:       #16a34a;   /* Green — confirmations, valid states */
+    --color-danger:        #dc2626;   /* Red — errors, warnings */
+    --color-danger-light:  #fee2e2;   /* Light red — error backgrounds */
+
+    --color-bg:            #f1f5f9;   /* Slate-100 — overall page background */
+    --color-surface:       #ffffff;   /* White — cards, panels, form areas */
+    --color-border:        #e2e8f0;   /* Slate-200 — subtle dividers and outlines */
+    --color-border-focus:  #93c5fd;   /* Blue-300 — outline when element has focus */
+
+    --color-text:          #1e293b;   /* Slate-800 — primary readable text */
+    --color-text-muted:    #64748b;   /* Slate-500 — secondary/label text */
+    --color-text-inverse:  #ffffff;   /* White — text placed on dark backgrounds */
+
+    /* ------------------------------------------
+       TYPOGRAPHY
+
+       font-family values are listed in priority order.
+       The browser uses the first one it finds installed.
+       The last value is a generic fallback (sans-serif, monospace).
+
+       rem units are relative to the ROOT font size (set on html below).
+       If the root is 16px, then 1rem = 16px, 0.875rem = 14px, etc.
+       rem is preferred over px because it respects the user's
+       browser font-size preference (accessibility).
+       ------------------------------------------ */
+
+    --font-family-base: -apple-system, BlinkMacSystemFont, "Segoe UI",
+                        Roboto, Helvetica, Arial, sans-serif;
+    --font-family-mono: "Courier New", Courier, monospace;
+
+    --font-size-xs:  0.75rem;    /*  12px — tiny labels */
+    --font-size-sm:  0.875rem;   /*  14px — captions, helper text */
+    --font-size-md:  1rem;       /*  16px — body text (the base) */
+    --font-size-lg:  1.125rem;   /*  18px — slightly larger body */
+    --font-size-xl:  1.25rem;    /*  20px — sub-headings */
+    --font-size-2xl: 1.5rem;     /*  24px — section headings */
+    --font-size-3xl: 1.875rem;   /*  30px — page titles */
+    --font-size-4xl: 2.25rem;    /*  36px — hero headings */
+
+    --font-weight-normal: 400;
+    --font-weight-medium: 500;
+    --font-weight-bold:   700;
+
+    --line-height-tight:  1.2;   /* Compact — good for headings */
+    --line-height-normal: 1.5;   /* Standard — good for body text */
+    --line-height-loose:  1.8;   /* Airy — good for long paragraphs */
+
+    /* ------------------------------------------
+       SPACING SCALE
+       A consistent set of sizes for margin, padding, and gap.
+       Named by multiplier: --space-4 = 4 × 4px = 16px (1rem).
+       This creates visual rhythm throughout the layout.
+       ------------------------------------------ */
+
+    --space-1:  0.25rem;   /*  4px */
+    --space-2:  0.5rem;    /*  8px */
+    --space-3:  0.75rem;   /* 12px */
+    --space-4:  1rem;      /* 16px */
+    --space-5:  1.25rem;   /* 20px */
+    --space-6:  1.5rem;    /* 24px */
+    --space-8:  2rem;      /* 32px */
+    --space-10: 2.5rem;    /* 40px */
+    --space-12: 3rem;      /* 48px */
+    --space-16: 4rem;      /* 64px */
+
+    /* ------------------------------------------
+       BORDER RADIUS
+       Controls how rounded the corners of elements are.
+       ------------------------------------------ */
+
+    --radius-sm:   0.25rem;   /*  4px — subtle rounding */
+    --radius-md:   0.5rem;    /*  8px — cards, buttons */
+    --radius-lg:   0.75rem;   /* 12px — larger panels */
+    --radius-xl:   1rem;      /* 16px — modals, popovers */
+    --radius-full: 9999px;    /* Pill shape — tags, badges */
+
+    /* ------------------------------------------
+       SHADOWS
+       Each shadow value is a CSS box-shadow string.
+       Multiple comma-separated shadows are "layered" for realism.
+       The rgba() colors use a 4th value (0.05–0.15) for opacity.
+       ------------------------------------------ */
+
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1),
+                 0 2px 4px -2px  rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1),
+                 0 4px 6px -4px   rgb(0 0 0 / 0.1);
+
+    /* ------------------------------------------
+       TRANSITIONS
+       Used with the CSS "transition" property to animate
+       state changes smoothly. "ease" is a built-in easing curve.
+       ------------------------------------------ */
+
+    --transition-fast: 120ms ease;
+    --transition-base: 200ms ease;
+    --transition-slow: 350ms ease;
+}
+
+
+/* ============================================================
+   SECTION 3 — BASE ELEMENT STYLES
+   ============================================================ */
+
+html {
+    /*
+       Setting font-size here sets the base for all rem units.
+       100% means "use whatever the browser default is" (usually 16px).
+       This preserves the user's font-size accessibility preferences.
+       Never hard-code this to a px value like 16px — that would
+       override the user's settings.
+    */
+    font-size: 100%;
+
+    /*
+       Prevents mobile browsers from auto-inflating font sizes after
+       a device orientation change (portrait → landscape).
+    */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+
+    /* Smoother font rendering on macOS/iOS */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+    font-family: var(--font-family-base);
+    font-size: var(--font-size-md);
+    line-height: var(--line-height-normal);
+    color: var(--color-text);
+    background-color: var(--color-bg);
+
+    /*
+       min-height: 100vh makes the body fill at least the full
+       viewport height (vh = viewport height units, 100vh = 100%).
+       This prevents short-page content from leaving a bare background.
+    */
+    min-height: 100vh;
+}
+
+/* Headings */
+h1, h2, h3, h4, h5, h6 {
+    line-height: var(--line-height-tight);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text);
+}
+
+h1 { font-size: var(--font-size-3xl); }
+h2 { font-size: var(--font-size-2xl); }
+h3 { font-size: var(--font-size-xl); }
+h4 { font-size: var(--font-size-lg); }
+
+/* Links */
+a {
+    color: var(--color-primary);
+    text-decoration: underline;
+    transition: color var(--transition-fast);
+}
+
+a:hover {
+    color: var(--color-primary-dark);
+}
+
+/*
+   Focus styles — shown when navigating with keyboard (Tab key).
+   Never remove outline entirely; it is essential for accessibility.
+   We replace the default outline with a custom one that matches our palette.
+*/
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+    outline: 2px solid var(--color-border-focus);
+    outline-offset: 2px;
+}
+
+/* Images — prevent overflow and make responsive by default */
+img,
+svg {
+    display: block;
+    max-width: 100%;
+}
+
+/* Buttons — basic reset; individual components style them further */
+button {
+    font-family: inherit;   /* Buttons don't inherit font by default in some browsers */
+    font-size: inherit;
+    cursor: pointer;
+    border: none;
+    background: none;
+}
+
+/* Form elements — ensure consistent font inheritance */
+input,
+select,
+textarea {
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
+}
+
+/* Lists — remove default bullets/numbers; apps style lists as needed */
+ul,
+ol {
+    list-style: none;
+}
+
+
+/* ============================================================
+   SECTION 4 — UTILITY CLASSES
+   Small, single-purpose helper classes.
+   Prefixed with "u-" to distinguish them from component classes.
+   Apply multiple utility classes directly on HTML elements.
+
+   Example:  <p class="u-text-center u-text-muted">...</p>
+   ============================================================ */
+
+/* Visually hidden but readable by screen readers (accessibility) */
+.u-sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+/* Display helpers */
+.u-hidden   { display: none !important; }
+.u-visible  { display: block !important; }
+
+/* Text alignment */
+.u-text-left   { text-align: left; }
+.u-text-center { text-align: center; }
+.u-text-right  { text-align: right; }
+
+/* Text color helpers */
+.u-text-muted   { color: var(--color-text-muted); }
+.u-text-primary { color: var(--color-primary); }
+.u-text-danger  { color: var(--color-danger); }
+.u-text-success { color: var(--color-success); }
+
+/* Font size helpers */
+.u-text-sm { font-size: var(--font-size-sm); }
+.u-text-lg { font-size: var(--font-size-lg); }
+
+/* Font weight */
+.u-font-bold   { font-weight: var(--font-weight-bold); }
+.u-font-normal { font-weight: var(--font-weight-normal); }

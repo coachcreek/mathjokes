@@ -1,0 +1,550 @@
+/* ============================================================
+   styles.css — Math Jokes Worksheet App Styles
+
+   This file contains styles SPECIFIC to the Math Jokes app.
+   It builds on top of shared/css/base.css, which must be
+   loaded first in index.html.
+
+   HOW THIS WORKS WITH base.css:
+   base.css defines CSS custom properties (variables) like
+   --color-primary and --space-4. This file USES those variables
+   via var(). If you want to change the whole color scheme, you
+   only need to update the variables in base.css.
+
+   FILE ORGANIZATION:
+   1. Page layout (header, main, footer)
+   2. Card (reusable panel style)
+   3. Form controls (labels, select dropdown, optgroup styling,
+                     hint text)
+   4. Examples preview panel
+   5. Generate button and action area
+   6. Error and status messages
+   7. How-it-works section
+   8. Responsive adjustments (for smaller screens)
+
+   NOTE ON SLIDERS:
+   The original version of this app used four <input type="range">
+   sliders to configure number ranges. Those were replaced in favour
+   of a single <select> dropdown with curriculum-aligned subtypes.
+   All slider CSS has been removed as part of that redesign.
+   ============================================================ */
+
+
+/* ============================================================
+   1 — PAGE LAYOUT
+   ============================================================ */
+
+/*
+   The page header: contains the app title and subtitle.
+   We use a dark background with white text to make it stand out.
+*/
+.page-header {
+    background-color: var(--color-primary);
+    color: var(--color-text-inverse);
+    padding: var(--space-8) var(--space-6);
+    text-align: center;
+
+    /* A subtle bottom shadow lifts the header off the page */
+    box-shadow: var(--shadow-md);
+}
+
+.page-header__title {
+    font-size: var(--font-size-3xl);
+    color: var(--color-text-inverse);   /* Override the default dark heading color */
+    margin-bottom: var(--space-2);
+}
+
+.page-header__subtitle {
+    font-size: var(--font-size-lg);
+    opacity: 0.85;   /* Slightly dimmed so it's secondary to the title */
+    max-width: 55ch; /* "ch" units ≈ width of the "0" character; caps line length */
+    margin: 0 auto;  /* Auto left/right margins center the element horizontally */
+}
+
+/*
+   The main content area.
+   max-width caps how wide the content grows on very large monitors.
+   margin: 0 auto centers it horizontally within the page.
+*/
+.page-main {
+    max-width: 820px;
+    margin: var(--space-8) auto;
+    padding: 0 var(--space-4);
+}
+
+/*
+   Two-column layout on wide screens: settings on the left, preview on the right.
+   On small screens this stacks vertically (see responsive section at bottom).
+
+   CSS Grid:
+     display: grid   — enables grid layout on this container
+     grid-template-columns: 1fr 1fr  — two equal-width columns
+       "fr" = "fractional unit" — each column gets 1 share of available space
+     gap  — space between grid cells (both rows and columns)
+*/
+.layout-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-6);
+
+    /*
+       align-items: stretch is the CSS Grid default. It makes every card in
+       the same row grow to the same height as the tallest card in that row.
+       This gives the two side-by-side panels a balanced, symmetrical look on
+       desktop — both boxes end at the same bottom edge.
+
+       The previous value was "start" (content-height only). We switched to
+       "stretch" specifically so the Worksheet Settings and Example Problems
+       cards are always equal in height.
+    */
+    align-items: stretch;
+}
+
+.page-footer {
+    text-align: center;
+    padding: var(--space-8) var(--space-4);
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+    border-top: 1px solid var(--color-border);
+    margin-top: var(--space-16);
+}
+
+
+/* ============================================================
+   2 — CARD (reusable panel style)
+   A "card" is a content box with a white background, rounded
+   corners, and a shadow. It visually separates sections.
+   ============================================================ */
+
+.card {
+    background-color: var(--color-surface);
+    border-radius: var(--radius-lg);
+    padding: var(--space-6);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--color-border);
+}
+
+.card__title {
+    font-size: var(--font-size-xl);
+    margin-bottom: var(--space-5);
+
+    /*
+       Flexbox lets us put an icon and text side-by-side and vertically center them.
+       display: flex     — enables flexbox on this element
+       align-items: center — vertically centers all children
+       gap               — space between flex children
+    */
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+/* The small emoji/icon before card titles — inherits size from .card__title */
+.card__title-icon {
+    line-height: 1;   /* Prevent the icon from adding extra line height */
+}
+
+
+/* ============================================================
+   3 — FORM CONTROLS
+   ============================================================ */
+
+/*
+   A "form-group" wraps one logical field (label + control + hint).
+   margin-bottom creates consistent vertical spacing between fields.
+*/
+.form-group {
+    margin-bottom: var(--space-6);
+}
+
+.form-group:last-child {
+    margin-bottom: 0;   /* No extra space after the last field */
+}
+
+/*
+   The label above a field: slightly muted color, with space below so
+   the control doesn't sit right against the label text.
+
+   Font treatment: normal weight, small size, muted color — this matches
+   the explanation paragraph in the Example Problems card ("These 3 samples
+   update live…"). Using the same treatment here reduces visual noise across
+   the page by cutting down on the number of distinct font styles in use.
+*/
+.form-label {
+    display: block;   /* Labels are inline by default; block makes them full-width */
+    font-weight: var(--font-weight-normal);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    margin-bottom: var(--space-2);
+}
+
+/*
+   A short explanatory note placed between the label and the control.
+   Uses the same size as other secondary text (sm) to keep a consistent
+   small-text weight throughout the settings panel.
+*/
+.form-hint {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    margin-bottom: var(--space-3);
+    line-height: 1.5;
+}
+
+/*
+   The <select> dropdown for choosing problem type.
+   appearance: none removes the browser's default dropdown arrow
+   so we can style it consistently. We add our own arrow with a
+   background-image SVG.
+*/
+.form-select {
+    display: block;
+    width: 100%;
+    padding: var(--space-3) var(--space-10) var(--space-3) var(--space-4);
+    border: 1.5px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background-color: var(--color-surface);
+    font-size: var(--font-size-md);
+    color: var(--color-text);
+    cursor: pointer;
+
+    /* Remove native styling */
+    -webkit-appearance: none;
+    appearance: none;
+
+    /*
+       Custom dropdown arrow using an inline SVG as a background image.
+       The SVG is URL-encoded (%3C = <, %3E = >, %23 = #) because it's
+       used as a data URL.
+       background-position and background-size place it at the right edge.
+    */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%2364748b' stroke-width='2' d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right var(--space-3) center;
+    background-size: 16px;
+
+    transition: border-color var(--transition-fast),
+                box-shadow   var(--transition-fast);
+}
+
+.form-select:hover {
+    border-color: var(--color-primary);
+}
+
+.form-select:focus {
+    outline: none;   /* Remove the default outline; we add our own below */
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px var(--color-primary-light);
+}
+
+/*
+   <optgroup> creates labelled sections within a <select>.
+   Browser support for styling optgroup varies, but we can at least
+   set font styling on the label that most browsers will honour.
+
+   The label attribute of <optgroup> becomes the section heading
+   (e.g. "Addition", "Multiplication") visible in the dropdown.
+*/
+.form-select optgroup {
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+}
+
+/*
+   Individual <option> elements within an optgroup appear slightly
+   indented in native dropdown implementations. We can also style
+   their text color and weight.
+*/
+.form-select option {
+    font-weight: normal;
+    color: var(--color-text);
+    font-size: var(--font-size-md);
+}
+
+
+/* ============================================================
+   4 — EXAMPLES PREVIEW PANEL
+   ============================================================ */
+
+.examples-list {
+    list-style: none;
+}
+
+/*
+   Each example problem is shown inside a styled box with a colored
+   left-border accent. Uses the standard body font to stay consistent
+   with the rest of the UI.
+*/
+.example-item {
+    font-size: var(--font-size-md);
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--space-2);
+    background-color: var(--color-bg);
+    border: 1px solid var(--color-border);
+
+    /* A left color border acts as a visual accent (like a quote bar) */
+    border-left: 3px solid var(--color-accent);
+}
+
+.example-item:last-child {
+    margin-bottom: 0;
+}
+
+.examples-empty {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    font-style: italic;
+}
+
+
+/* ============================================================
+   5 — GENERATE BUTTON AND ACTION AREA
+   ============================================================ */
+
+.action-area {
+    margin-top: var(--space-8);
+    text-align: center;
+}
+
+/*
+   The primary call-to-action button.
+   Large, full-width (up to a max), prominent color.
+*/
+.btn-generate {
+    display: inline-flex;    /* Allows icon + text to sit side-by-side */
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+
+    width: 100%;
+    max-width: 400px;
+    padding: var(--space-4) var(--space-8);
+
+    background-color: var(--color-primary);
+    color: var(--color-text-inverse);
+
+    /*
+       Font treatment to match the page title banner ("Math Jokes Worksheet Generator").
+       Both the title and this button are bold white text on a blue background, so
+       they should feel like a matched pair.
+
+       - font-size-xl (20px): slightly larger than the old lg (18px). Combined with
+         bold weight and the button's generous padding, this gives the text more
+         visual impact — closer to the heading scale of the title.
+       - letter-spacing: 0.02em: a subtle widening of character spacing. Headings
+         often feel more confident with a touch of letter-spacing; this echoes that
+         quality without making the button look like all-caps signage.
+       - line-height-tight: matches the compact line-height used on all headings
+         (defined in base.css). For a single-line button label it has no visual
+         effect, but it makes the intent explicit and consistent.
+    */
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+    letter-spacing: 0.02em;
+    line-height: var(--line-height-tight);
+
+    border-radius: var(--radius-md);
+    border: none;
+    cursor: pointer;
+
+    box-shadow: var(--shadow-md);
+
+    transition: background-color var(--transition-fast),
+                transform        var(--transition-fast),
+                box-shadow       var(--transition-fast);
+}
+
+.btn-generate:hover:not(:disabled) {
+    background-color: var(--color-primary-dark);
+    transform: translateY(-2px);          /* Lift effect */
+    box-shadow: var(--shadow-lg);
+}
+
+.btn-generate:active:not(:disabled) {
+    transform: translateY(0);             /* Press effect */
+    box-shadow: var(--shadow-sm);
+}
+
+/*
+   Disabled state — shown while the PDF is being generated.
+   pointer-events: none prevents hover/click styles from activating.
+*/
+.btn-generate:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* ============================================================
+   6 — ERROR AND STATUS MESSAGES
+   ============================================================ */
+
+/*
+   Error message box — shown when validation fails.
+   We use role="alert" in the HTML so screen readers announce it.
+*/
+.message-error {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+
+    padding: var(--space-4);
+    border-radius: var(--radius-md);
+    background-color: var(--color-danger-light);
+    border: 1px solid var(--color-danger);
+    color: var(--color-danger);
+    font-size: var(--font-size-sm);
+    margin-top: var(--space-4);
+
+    /*
+       "u-hidden" class (from base.css) sets display:none.
+       We start hidden and remove the class in JavaScript to show it.
+    */
+}
+
+.message-error__icon {
+    font-size: var(--font-size-lg);
+    flex-shrink: 0;   /* Prevent icon from shrinking if text is long */
+}
+
+/*
+   Status (success) message — shown after successful PDF generation.
+*/
+.message-status {
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-md);
+    background-color: #dcfce7;       /* Green-100 */
+    border: 1px solid var(--color-success);
+    color: #15803d;                  /* Green-700 */
+    font-size: var(--font-size-sm);
+    margin-top: var(--space-4);
+    text-align: center;
+}
+
+
+/* ============================================================
+   7 — HOW-IT-WORKS SECTION
+   A simple numbered list explaining the worksheet to the user.
+   ============================================================ */
+
+.how-it-works {
+    margin-top: var(--space-8);
+}
+
+.steps-list {
+    counter-reset: steps;    /* Initialize a CSS counter named "steps" */
+    list-style: none;
+}
+
+.steps-list li {
+    counter-increment: steps;   /* Increment the counter for each <li> */
+    display: flex;
+    gap: var(--space-4);
+    align-items: flex-start;
+    margin-bottom: var(--space-4);
+    font-size: var(--font-size-sm);
+
+    /*
+       color-text-muted (slate-500) instead of the darker color-text (slate-800).
+       This matches the font treatment used in the Example Problems explanation
+       paragraph, reducing the number of distinct text-color treatments on the page.
+       The <strong> labels inside each step ("Set up:", "The code grid:", etc.)
+       inherit this muted color but stand out through their bold weight.
+    */
+    color: var(--color-text-muted);
+}
+
+/*
+   Use a pseudo-element to display the step number from the counter.
+   ::before inserts generated content BEFORE the element's content.
+*/
+.steps-list li::before {
+    content: counter(steps);   /* Show the counter value (1, 2, 3 …) */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background-color: var(--color-primary);
+    color: var(--color-text-inverse);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-bold);
+    flex-shrink: 0;   /* Prevent the circle from shrinking in narrow layouts */
+}
+
+
+/* ============================================================
+   8 — RESPONSIVE DESIGN
+   CSS media queries apply styles ONLY when the viewport matches
+   a condition. "@media (max-width: Xpx)" targets screens smaller
+   than X pixels wide — typically phones and small tablets.
+
+   Our approach (desktop-first): base styles target wider screens,
+   and media queries override for narrower screens.
+   ============================================================ */
+
+@media (max-width: 640px) {
+    /*
+       On small screens, switch from a 2-column grid to a single column
+       so both cards stack vertically and remain readable.
+    */
+    .layout-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .page-header__title {
+        font-size: var(--font-size-2xl);   /* Smaller title on mobile */
+    }
+
+    .page-header__subtitle {
+        font-size: var(--font-size-md);
+    }
+
+    /* Full-width button on mobile */
+    .btn-generate {
+        max-width: 100%;
+    }
+
+    /*
+       Reduce font size for both the <select> element and its options on mobile.
+
+       WHY WE NOW TARGET THE <select> ELEMENT ITSELF:
+       Our earlier version only set font-size on .form-select option and
+       .form-select optgroup. That was the wrong target for Android Chrome.
+
+       Chrome for Android's native dropdown dialog renders its list using the
+       font-size of the <select> ELEMENT — it largely ignores font-size set on
+       the individual <option> and <optgroup> elements inside it. To actually
+       reduce the text size inside Android's dropdown dialog, we must reduce
+       the font-size on .form-select itself.
+
+       iOS TRADEOFF — WHY THERE IS A KNOWN SIDE-EFFECT:
+       iOS Safari auto-zooms any form element whose font-size is below 16px
+       (1rem) when the user taps it to open the dropdown. With font-size at
+       0.875rem (14px) here, iOS will zoom in by roughly 14% on tap, then zoom
+       back out after the user makes a selection. This is a minor visual bump
+       rather than a true usability problem.
+
+       If that iOS behaviour ever becomes a priority to fix, the only reliable
+       option is to build a fully custom dropdown (replacing <select> with a
+       JavaScript-driven list), which gives complete CSS control over the UI.
+
+       WHY WE KEEP THE option/optgroup RULE TOO:
+       Firefox for Android and some other mobile browsers DO respect font-size
+       on <option>/<optgroup> elements. Keeping that rule is a belt-and-
+       suspenders approach that helps those browsers without harming Chrome.
+
+       iOS Safari: the native wheel picker is drawn entirely by the OS.
+       No CSS can affect the font size inside it — this is an iOS limitation.
+    */
+    .form-select {
+        font-size: var(--font-size-sm);   /* 14px — controls Android dialog text */
+    }
+
+    .form-select option,
+    .form-select optgroup {
+        font-size: var(--font-size-sm);   /* 14px — helps Firefox and other mobile browsers */
+    }
+}
