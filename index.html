@@ -51,6 +51,74 @@
   <title>Math Jokes Worksheet Generator</title>
 
   <!--
+    Meta description — the sentence shown under the page title in search
+    engine results. Keep it under ~160 characters so it is not cut off.
+    Search engines use this text when they do not find a better summary
+    in the page body.
+  -->
+  <meta name="description" content="Free printable math worksheets with a fun twist — solve the problems to decode a silly joke! Choose from 34+ math skills covering addition, subtraction, multiplication, and division.">
+
+  <!--
+    Canonical tag — tells search engines that this URL is the "official"
+    version of the page. This prevents duplicate-content issues if the
+    site is ever reachable via www., http://, or other variations.
+  -->
+  <link rel="canonical" href="https://mathjokes.org/">
+
+  <!--
+    Open Graph tags — control how this page appears when shared on social
+    media platforms (Facebook, LinkedIn, iMessage link previews, etc.).
+    og:type "website" is the default for a standalone web app.
+  -->
+  <meta property="og:title"       content="Math Jokes Worksheet Generator">
+  <meta property="og:description" content="Create printable math worksheets where solving problems reveals a silly joke!">
+  <meta property="og:type"        content="website">
+  <meta property="og:url"         content="https://mathjokes.org/">
+
+  <!--
+    Twitter Card tags — control the preview shown when a link is shared
+    on Twitter/X. "summary" shows a small card with title + description.
+    Change to "summary_large_image" if you add an og:image screenshot.
+  -->
+  <meta name="twitter:card"        content="summary">
+  <meta name="twitter:title"       content="Math Jokes Worksheet Generator">
+  <meta name="twitter:description" content="Free printable math worksheets where kids decode a joke by solving math problems.">
+
+  <!--
+    Favicon — the small icon shown in the browser tab and bookmarks.
+    Google also displays it next to the page title in search results.
+    Place a favicon.png file at the root of the site to activate this.
+  -->
+  <link rel="icon" type="image/png" href="favicon.png">
+
+  <!--
+    JSON-LD structured data — a machine-readable description of this page
+    that search engines (especially Google) use to understand its content.
+    SoftwareApplication + EducationalApplication signals that this is a
+    free educational tool, which can unlock rich result features.
+    This script tag is invisible to users; it only communicates with bots.
+  -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Math Jokes Worksheet Generator",
+    "description": "Create free printable math worksheets where solving problems reveals a silly joke.",
+    "applicationCategory": "EducationalApplication",
+    "url": "https://mathjokes.org/",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "audience": {
+      "@type": "EducationalAudience",
+      "educationalRole": "student"
+    }
+  }
+  </script>
+
+  <!--
     Stylesheets: loaded in order. base.css goes first so its CSS variables
     are available when styles.css references them with var().
     The path "css/base.css" means:
@@ -316,6 +384,32 @@
               <option value="multiplication-by-11">Multiplying by 11 (×11 table)</option>
               <option value="multiplication-by-12">Multiplying by 12 (×12 table)</option>
               <option value="multiplication-mixed">Mixed multiplication facts (all tables)</option>
+
+              <!--
+                1-digit × 2-digit: taught in grades 3–4 via the distributive
+                property and area models. First true "multi-digit" multiplication.
+              -->
+              <option value="multiplication-1digit-2digit">1-digit &times; 2-digit numbers</option>
+
+              <!--
+                2-digit × 2-digit: the capstone multi-digit multiplication skill
+                in grades 4–5. Students use the standard algorithm or area model.
+              -->
+              <option value="multiplication-2digit-2digit">2-digit &times; 2-digit numbers</option>
+
+              <!--
+                Multiplying by multiples of 10: e.g. 6 × 30.
+                Taught in grade 3 as an extension of times-table knowledge into
+                place value (6 × 30 = 6 × 3 × 10).
+              -->
+              <option value="multiplication-by-multiples-of-10">Multiplying by multiples of 10 (e.g. 6 &times; 30)</option>
+
+              <!--
+                Perfect squares: n × n for n = 1–12.
+                An explicitly named set taught in grades 4–6. Foundational for
+                area, square roots, and algebraic reasoning.
+              -->
+              <option value="multiplication-perfect-squares">Perfect squares (1&times;1 through 12&times;12)</option>
             </optgroup><!-- end Multiplication -->
 
 

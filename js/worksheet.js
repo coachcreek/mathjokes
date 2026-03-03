@@ -889,6 +889,154 @@ const PROBLEM_SUBTYPES = {
         },
     },
 
+    /**
+     * 1-digit × 2-digit multiplication.
+     * A key grade 3–4 skill taught via the distributive property and
+     * area models (e.g. 7 × 34 = 7×30 + 7×4 = 210 + 28 = 238).
+     * Students apply their times-table knowledge to larger numbers.
+     *
+     * Constraints:
+     *   • first (top):  1-digit multiplier, 2–9
+     *     (We start at 2 to avoid trivial ×1 problems.)
+     *   • second (bottom): 2-digit multiplicand, 12–99
+     *     (We start at 12 to avoid overlap with the single-table entries.)
+     *   • answer cap: ≤ 891 (= 9 × 99). jsPDF renders these fine as integers.
+     *
+     * Unique answer pool: very large (distinct products span a wide range).
+     *
+     * fontSize is 14 (one step smaller than the single-table entries) because
+     * the 2-digit second number needs a bit more room in each column.
+     */
+    'multiplication-1digit-2digit': {
+        category: 'Multiplication',
+        label:    '1-digit \u00D7 2-digit numbers',
+        sign:     '\u00D7',
+        fontSize: 14,
+        generate() {
+            const problems = [];
+            /*
+               The 1-digit number goes on top (first) and the 2-digit number
+               on the bottom (second). This matches how multi-digit multiplication
+               is typically laid out on paper (smaller number on top).
+            */
+            for (let a = 2; a <= 9; a++) {
+                for (let b = 12; b <= 99; b++) {
+                    problems.push({ first: a, second: b, answer: a * b });
+                }
+            }
+            return problems;
+        },
+    },
+
+    /**
+     * 2-digit × 2-digit multiplication.
+     * The capstone multi-digit multiplication skill in grades 4–5.
+     * Students use the standard algorithm or area model to multiply
+     * two 2-digit numbers (e.g. 23 × 47 = 1,081).
+     *
+     * Constraints:
+     *   • Both operands: 11–49.
+     *     Upper bound is 49 (not 99) so the answers stay in the
+     *     hundreds (max 49 × 49 = 2,401) rather than approaching 10,000,
+     *     keeping code numbers reasonably short for the decode grid.
+     *   • first ≥ second: we enforce this so the larger number is always on
+     *     top, matching the standard paper algorithm layout.
+     *
+     * Unique answer pool: very large (products span roughly 121–2,401).
+     *
+     * fontSize is 14 to give 2-digit numbers comfortable column space.
+     */
+    'multiplication-2digit-2digit': {
+        category: 'Multiplication',
+        label:    '2-digit \u00D7 2-digit numbers',
+        sign:     '\u00D7',
+        fontSize: 14,
+        generate() {
+            const problems = [];
+            /*
+               We place the larger number on top (first) and the smaller
+               on the bottom (second) for standard algorithm alignment.
+               Requiring first >= second also halves the problem count,
+               avoiding both "23 × 47" and "47 × 23" in the same pool.
+            */
+            for (let a = 11; a <= 49; a++) {
+                for (let b = 11; b <= a; b++) {
+                    problems.push({ first: a, second: b, answer: a * b });
+                }
+            }
+            return problems;
+        },
+    },
+
+    /**
+     * Multiplying a 1-digit number by a multiple of 10.
+     * A foundational place-value skill taught in grade 3 (and revisited in 4–5).
+     * Students learn that 6 × 30 = 6 × 3 × 10 = 180, connecting times-table
+     * knowledge to the base-10 number system.
+     *
+     * Structure:
+     *   • first (top):   single-digit factor, 2–9
+     *   • second (bottom): multiple of 10, from 10 to 90
+     *
+     * Unique answer pool: 72 values (products of 2–9 and 10–90,
+     * stepping by 10: 20, 30, 40 … 810).
+     */
+    'multiplication-by-multiples-of-10': {
+        category: 'Multiplication',
+        label:    'Multiplying by multiples of 10 (e.g. 6 \u00D7 30)',
+        sign:     '\u00D7',
+        fontSize: 16,
+        generate() {
+            const problems = [];
+            /*
+               The single-digit factor goes on top; the multiple of 10 goes
+               on the bottom (with the × sign). This mirrors the layout used
+               when teaching this skill: students see "the table fact on top,
+               the power-of-ten factor on the bottom."
+            */
+            for (let a = 2; a <= 9; a++) {
+                for (let b = 10; b <= 90; b += 10) {
+                    problems.push({ first: a, second: b, answer: a * b });
+                }
+            }
+            return problems;
+        },
+    },
+
+    /**
+     * Perfect squares: n × n for n = 1–12.
+     * Perfect squares are taught as a named set in grades 4–6.
+     * Knowing them by heart helps with area calculations, square roots,
+     * and algebraic reasoning (x² patterns).
+     *
+     * The worksheet shows both numbers the same (e.g. 7 × 7), making it
+     * immediately clear that this is a "squaring" exercise.
+     *
+     * Unique answer pool: 12 values (1, 4, 9, 16, 25, 36, 49, 64, 81, 100, 121, 144).
+     *
+     * NOTE: With exactly 12 unique codes, this works for jokes whose answers
+     * have up to 12 distinct letters. The createAnswerDict() fallback handles
+     * longer answers gracefully.
+     */
+    'multiplication-perfect-squares': {
+        category: 'Multiplication',
+        label:    'Perfect squares (1\u00D71 through 12\u00D712)',
+        sign:     '\u00D7',
+        fontSize: 16,
+        generate() {
+            const problems = [];
+            /*
+               n × n: both numbers are identical. We show "n" on top and "n"
+               on the bottom with the × sign, making the squaring structure
+               visually obvious on the printed worksheet.
+            */
+            for (let n = 1; n <= 12; n++) {
+                problems.push({ first: n, second: n, answer: n * n });
+            }
+            return problems;
+        },
+    },
+
 
     /* ──────────────────────────────────────────────────────────
        DIVISION SUBTYPES
@@ -1649,7 +1797,41 @@ function generateWorksheetPDF(jokeData, answerDict, subtypeKey) {
 
 
     /* ========================================================
-       SECTION E — SAVE / DOWNLOAD
+       SECTION E — FOOTER BRANDING
+
+       Stamp "mathjokes.org" at the bottom of every page so that
+       printed worksheets carry the site URL.
+
+       doc.getNumberOfPages() returns how many pages were created.
+       We loop through each page (pages are 1-indexed in jsPDF),
+       call doc.setPage(n) to switch to it, then draw the footer.
+       This handles multi-page worksheets correctly.
+
+       Footer position:
+         x = PAGE_W / 2 → horizontally centred
+         y = PAGE_H - 6 → 6 mm above the physical bottom edge,
+             safely inside the printable area of most printers.
+    ======================================================== */
+
+    const totalPages = doc.getNumberOfPages();
+
+    for (let p = 1; p <= totalPages; p++) {
+        doc.setPage(p);
+
+        /*
+           Match the Name/Date header: Times, normal, 12pt, black.
+           This gives the footer the same typographic weight as the
+           student-facing fields at the top, keeping the page cohesive.
+        */
+        doc.setFont('Times', 'normal');
+        doc.setFontSize(12);
+
+        doc.text('mathjokes.org', PAGE_W / 2, PAGE_H - 6, { align: 'center' });
+    }
+
+
+    /* ========================================================
+       SECTION F — SAVE / DOWNLOAD
        ======================================================== */
 
     /*

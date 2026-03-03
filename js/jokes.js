@@ -34,11 +34,11 @@ const jokes = [
     { id: 1000001, filename: 'fish_schools',          joke_q: 'Why are fish so smart?',                                                                 joke_a: 'They Live in Schools', is_prod: false },
 
     // 15 alpha chars
-    { id: 1000002, filename: 'bathroom_instrument',   joke_q: 'What musical instrument is in the bathroom?',                                            joke_a: 'A tuba toothpaste', is_prod: true },
+    { id: 1000002, filename: 'bathroom_instrument',   joke_q: 'What musical instrument is in the bathroom?',                                            joke_a: 'A Tuba Toothpaste', is_prod: true },
     { id: 1000003, filename: 'math_book_sad',          joke_q: 'Why was the math book sad?',                                                             joke_a: 'Too many problems', is_prod: false },
 
     // 14 alpha chars
-    { id: 1000004, filename: 'banana_doctor',          joke_q: 'Why did the banana go to the doctor?',                                                   joke_a: 'Not peeling well',  is_prod: true },
+    { id: 1000004, filename: 'banana_doctor',          joke_q: 'Why did the banana go to the doctor?',                                                   joke_a: 'Not Peeling Well',  is_prod: true },
     { id: 1000005, filename: 'basketball_wet',         joke_q: 'Why are basketball courts always wet?',                                                  joke_a: 'Players Dribble',   is_prod: true },
     { id: 1000006, filename: 'bees_hum',               joke_q: 'Why do bees hum?',                                                                       joke_a: 'Forgot the words',  is_prod: false },
     { id: 1000007, filename: 'depressed_zebra',        joke_q: "What's black and white and blue?",                                                       joke_a: 'Depressed Zebra',   is_prod: false },
@@ -46,7 +46,7 @@ const jokes = [
     { id: 1000009, filename: 'math_worried',           joke_q: 'Why did the math book look worried?',                                                    joke_a: 'Full of problems',  is_prod: false },
     { id: 1000010, filename: 'mummy_vacation',         joke_q: "Why don't mummies take vacations?",                                                      joke_a: 'Afraid to unwind',  is_prod: false },
     { id: 1000011, filename: 'run_bed',                joke_q: 'Why did the man run around his bed?',                                                    joke_a: 'Catch up on sleep', is_prod: false },
-    { id: 1000012, filename: 'tissue_dance',           joke_q: 'How do you make a tissue dance?',                                                        joke_a: 'Put a boogie in it',is_prod: true },
+    { id: 1000012, filename: 'tissue_dance',           joke_q: 'How do you make a tissue dance?',                                                        joke_a: 'Put A Boogie In It',is_prod: true },
     { id: 1000013, filename: 'train_toffee',           joke_q: 'What do you call a train loaded with caramel?',                                           joke_a: 'Chew-Chew Train', is_prod: true },
 
     // 13 alpha chars
@@ -109,7 +109,7 @@ const jokes = [
     { id: 1000066, filename: 'your_cheese',            joke_q: "What do you call cheese that isn't yours?",                                              joke_a: 'Nacho Cheese',      is_prod: true },
 
     // 10 alpha chars
-    { id: 1000067, filename: 'animal_wig',             joke_q: 'What animal needs to wear a wig?',                                                       joke_a: 'A bald eagle',      is_prod: true },
+    { id: 1000067, filename: 'animal_wig',             joke_q: 'What animal needs to wear a wig?',                                                       joke_a: 'A Bald Eagle',      is_prod: true },
     { id: 1000068, filename: 'bagel_fly',              joke_q: 'What do you call a bagel that can fly?',                                                 joke_a: 'Plane Bagel',       is_prod: true },
     { id: 1000069, filename: 'bee_hair',               joke_q: 'What do bees use to style their hair?',                                                  joke_a: 'Honeycombs',        is_prod: true },
     { id: 1000070, filename: 'bees_school',            joke_q: 'How do bees get to school?',                                                             joke_a: 'School Buzz',       is_prod: true },
@@ -124,8 +124,8 @@ const jokes = [
     { id: 1000079, filename: 'cow_movies',             joke_q: 'Where do cows go for fun?',                                                              joke_a: 'The moo-vies',      is_prod: true },
     { id: 1000080, filename: 'cow_vegetable',          joke_q: "What is a cow's favorite vegetable?",                                                    joke_a: 'Cow-iflower',       is_prod: true },
     { id: 1000081, filename: 'dog_mosquito',           joke_q: 'What do you get if you cross a dog and a mosquito?',                                      joke_a: 'Bloodhound',        is_prod: true },
-    { id: 1000082, filename: 'dressed_lion',           joke_q: 'What do you call a well-dressed lion?',                                                  joke_a: 'A dandy-lion',      is_prod: true },
-    { id: 1000083, filename: 'ears_no_hear',           joke_q: 'What has ears but cannot hear?',                                                         joke_a: 'A cornfield',       is_prod: true },
+    { id: 1000082, filename: 'dressed_lion',           joke_q: 'What do you call a well-dressed lion?',                                                  joke_a: 'A Dandy-lion',      is_prod: true },
+    { id: 1000083, filename: 'ears_no_hear',           joke_q: 'What has ears but cannot hear?',                                                         joke_a: 'A Cornfield',       is_prod: true },
     { id: 1000084, filename: 'elephant_vader',         joke_q: 'What do you get when you cross an elephant with Darth Vader?',                            joke_a: 'An Ele-vader',      is_prod: true },
     { id: 1000085, filename: 'elf_school',             joke_q: 'What do elves learn in school?',                                                         joke_a: 'The elf-abet',      is_prod: true },
     { id: 1000086, filename: 'end_rainbow',            joke_q: 'What is at the end of every rainbow?',                                                   joke_a: 'The Letter W',      is_prod: true },
@@ -136,7 +136,7 @@ const jokes = [
     { id: 1000091, filename: 'moose_name',             joke_q: 'What do you call a moose with no name?',                                                 joke_a: 'Anonymoose',        is_prod: true },
     { id: 1000092, filename: 'most_letters',           joke_q: 'What two words, when combined, hold the most letters?',                                  joke_a: 'Post Office',       is_prod: true },
     { id: 1000093, filename: 'mushroom_fun',           joke_q: 'Why does everyone like to hang out with the mushroom?',                                  joke_a: 'He Is A Real Fungi',       is_prod: true },
-    { id: 1000094, filename: 'music_keys',             joke_q: 'Where did the music teacher leave her keys?',                                            joke_a: 'In the Piano',      is_prod: true },
+    { id: 1000094, filename: 'music_keys',             joke_q: 'Where did the music teacher leave her keys?',                                            joke_a: 'In The Piano',      is_prod: true },
     { id: 1000095, filename: 'one_letter',             joke_q: 'What starts with an E, ends with an E, but only contains one letter?',                   joke_a: 'An Envelope',       is_prod: true },
     { id: 1000096, filename: 'panda_movies',           joke_q: 'Why do pandas like old movies?',                                                         joke_a: 'Black & White',     is_prod: false },
     { id: 1000097, filename: 'platypus_hole',          joke_q: 'What do you call a platypus that falls in a hole?',                                      joke_a: 'A Splatypus',       is_prod: true },
@@ -153,10 +153,10 @@ const jokes = [
     // 9 alpha chars
     { id: 1000107, filename: 'aardvark_feet',          joke_q: 'What do you call an aardvark that is three feet long?',                                  joke_a: 'A Yardvark',        is_prod: true },
     { id: 1000108, filename: 'astronaut_baby',         joke_q: "How do you get an astronaut's baby to stop crying?",                                     joke_a: 'You Rocket',        is_prod: true },
-    { id: 1000109, filename: 'bear_teeth',             joke_q: 'What do you call a bear with no teeth?',                                                 joke_a: 'Gummy bear',        is_prod: true },
+    { id: 1000109, filename: 'bear_teeth',             joke_q: 'What do you call a bear with no teeth?',                                                 joke_a: 'A Gummy Bear',        is_prod: true },
     { id: 1000110, filename: 'bronto_lemon',           joke_q: 'What do you get when you cross a brontosaurus and a lemon?',                              joke_a: 'A Dino-sour',       is_prod: true },
     { id: 1000111, filename: 'bumblebee_candy',        joke_q: 'What candy do bumblebees love the most?',                                                joke_a: 'Bumble Gum',        is_prod: true },
-    { id: 1000112, filename: 'cat_pile',               joke_q: 'What do you call a pile of cats?',                                                       joke_a: 'A Meowtain',        is_prod: true },
+    { id: 1000112, filename: 'cat_pile',               joke_q: 'What do you call a pile of cats?',                                                       joke_a: 'A Meow-tain',        is_prod: true },
     { id: 1000113, filename: 'cat_water',              joke_q: 'What do you call a cat that loves water?',                                               joke_a: 'A Purr-maid',       is_prod: true },
     { id: 1000114, filename: 'chicken_egg_barn',       joke_q: 'What do you get when a chicken lays an egg on top of a barn?',                           joke_a: 'An Eggroll',        is_prod: true },
     { id: 1000115, filename: 'cow_toad',               joke_q: 'What do you get when you cross a cow and a toad?',                                        joke_a: 'A Bullfrog',        is_prod: true },
@@ -164,16 +164,16 @@ const jokes = [
     { id: 1000117, filename: 'dogs_tell_time',         joke_q: 'What kind of dogs can tell time?',                                                       joke_a: 'Watch Dogs',        is_prod: true },
     { id: 1000118, filename: 'elephant_nothing',       joke_q: 'What is as big as an elephant but weighs absolutely nothing?',                           joke_a: 'Its Shadow',        is_prod: true },
     { id: 1000119, filename: 'fake_spaghetti',         joke_q: 'What do you call fake spaghetti?',                                                       joke_a: 'An Impasta',        is_prod: true },
-    { id: 1000120, filename: 'fake_stone',             joke_q: 'What do you call a fake stone?',                                                         joke_a: 'A sham-rock',       is_prod: true },
-    { id: 1000121, filename: 'frozen_dog',             joke_q: 'What do you call a frozen dog?',                                                         joke_a: 'A pupsicle',        is_prod: true },
-    { id: 1000122, filename: 'golfer_pants',           joke_q: 'Why did the golfer bring two pairs of pants?',                                           joke_a: 'Hole in one',       is_prod: true },
+    { id: 1000120, filename: 'fake_stone',             joke_q: 'What do you call a fake stone?',                                                         joke_a: 'A Sham-rock',       is_prod: true },
+    { id: 1000121, filename: 'frozen_dog',             joke_q: 'What do you call a frozen dog?',                                                         joke_a: 'A Pupsicle',        is_prod: true },
+    { id: 1000122, filename: 'golfer_pants',           joke_q: 'Why did the golfer bring two pairs of pants?',                                           joke_a: 'Hole in one',       is_prod: false },
     { id: 1000123, filename: 'magic_owl',              joke_q: 'What do you call a magic owl?',                                                          joke_a: 'Whooo-dini',        is_prod: true },
     { id: 1000124, filename: 'meditating_wolf',        joke_q: 'What do you call a meditating wolf?',                                                    joke_a: 'Aware Wolf',        is_prod: true },
-    { id: 1000125, filename: 'oyster_share',           joke_q: "Why don't oysters share?",                                                               joke_a: 'Shellfish',         is_prod: true },
+    { id: 1000125, filename: 'oyster_share',           joke_q: "What do you call an oyster who refuses to share?",                                       joke_a: 'Shellfish',         is_prod: true },
     { id: 1000126, filename: 'pig_karate',             joke_q: 'What do you get when a pig does karate?',                                                joke_a: 'Pork Chops',        is_prod: true },
     { id: 1000127, filename: 'rabbit_fleas',           joke_q: 'What do you call a rabbit with fleas?',                                                  joke_a: 'Bugs Bunny',        is_prod: true },
-    { id: 1000128, filename: 'room_no_walls',          joke_q: 'What room has no walls?',                                                                joke_a: 'A mushroom',        is_prod: true },
-    { id: 1000129, filename: 'sad_coffee',             joke_q: 'What do you call a sad cup of coffee?',                                                  joke_a: 'A depresso',        is_prod: true },
+    { id: 1000128, filename: 'room_no_walls',          joke_q: 'What room has no walls?',                                                                joke_a: 'A Mushroom',        is_prod: true },
+    { id: 1000129, filename: 'sad_coffee',             joke_q: 'What do you call a sad cup of coffee?',                                                  joke_a: 'A depresso',        is_prod: false },
     { id: 1000130, filename: 'skeleton_instrument',    joke_q: 'What instrument does a skeleton play?',                                                  joke_a: 'A Trom-bone',       is_prod: true },
     { id: 1000131, filename: 'space_party',            joke_q: 'How do you organize a space party?',                                                     joke_a: 'You Planet',        is_prod: true },
     { id: 1000132, filename: 'squirrel_breakfast',     joke_q: 'What does a squirrel like to eat for breakfast?',                                        joke_a: 'Dough-Nuts',        is_prod: true },
@@ -182,7 +182,7 @@ const jokes = [
     { id: 1000135, filename: 'triangle_circle',        joke_q: 'What does a triangle call a circle?',                                                    joke_a: 'Pointless',         is_prod: true },
 
     // 8 alpha chars
-    { id: 1000136, filename: 'astronaut_computer',     joke_q: "What is an astronaut's favorite part of a computer?",                                    joke_a: 'Space Bar',         is_prod: true },
+    { id: 1000136, filename: 'astronaut_computer',     joke_q: "What is an astronaut's favorite part of a computer?",                                    joke_a: 'The Space Bar',     is_prod: true },
     { id: 1000137, filename: 'bear_socks',             joke_q: 'What do you call a bear with no socks on?',                                              joke_a: 'Bare-foot',         is_prod: true },
     { id: 1000138, filename: 'bicycle_tired',          joke_q: 'Why did the bicycle fall over?',                                                         joke_a: 'Two tired',         is_prod: true },
     { id: 1000139, filename: 'bird_math',              joke_q: "What is a bird's favorite type of math?",                                                joke_a: 'Owl-gebra',         is_prod: true },

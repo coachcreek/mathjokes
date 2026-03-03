@@ -15,7 +15,7 @@ Generates printable math worksheet PDFs where students solve math problems to de
 Script load order in index.html is critical: `utils.js → jokes.js → worksheet.js → app.js`
 
 ## Key architecture: PROBLEM_SUBTYPES
-`worksheet.js` exports a single object `PROBLEM_SUBTYPES` with 42 entries (no sliders).
+`worksheet.js` exports a single object `PROBLEM_SUBTYPES` with 46 entries (no sliders).
 Each entry: `{ category, label, sign, fontSize, generate() → [{first, second, answer}] }`
 
 Categories and entry counts:
@@ -24,8 +24,20 @@ Categories and entry counts:
   multiples-of-ten
 - **Subtraction** (8): single-digit, small-amounts (-1/2/3), teen numbers, subtract-ten,
   1digit-from-2digit, 2digit-2digit (no regroup), 2digit-2digit (regroup), from-100
-- **Multiplication** (12): by-2 through by-12, plus mixed
+- **Multiplication** (16): by-2 through by-12, mixed, 1digit×2digit, 2digit×2digit,
+  by-multiples-of-10, perfect-squares
 - **Division** (11): by-2 through by-12
+
+### Notes on new multiplication subtypes (added 2026-03-02)
+- `multiplication-1digit-2digit`: first=2–9, second=12–99; fontSize 14; large answer pool
+- `multiplication-2digit-2digit`: both 11–49, first≥second (larger on top); fontSize 14; large pool
+- `multiplication-by-multiples-of-10`: first=2–9, second=10/20/…/90; fontSize 16; 72 unique answers
+- `multiplication-perfect-squares`: n×n for n=1–12; 12 unique answers (1,4,9,…,144)
+
+### Decimal multiplication — intentionally omitted
+Decimal answers (e.g. 0.4 × 0.3 = 0.12) would appear as the code numbers in the decode
+grid. Matching fractional codes to boxes is confusing for students. Deferred until a
+dedicated display format for non-integer codes is designed.
 
 Private helpers: `_multiplicationTable(n)` and `_divisionTable(n)` (used inside worksheet.js only).
 
@@ -59,14 +71,31 @@ The full `jokes` array is kept in the file purely as a master list for future ed
 4. Joke resolution: `jokeId === 'random'` → `randomChoice(prodJokes)`, else `prodJokes.find(j => String(j.id) === jokeId)`
 
 ## PDF layout (jsPDF, US Letter, mm units, portrait)
-- Section A: Name/Date header
-- Section B: Joke question (word-wrapped)
+- Section A: Name/Date header (Times, normal, 12pt)
+- Section B: Joke question (Times, bold, 14pt, word-wrapped)
 - Section C: Decode row — blank boxes with code numbers below
 - Section D: Shuffled math problems in 4-column grid (stacked: first / sign+second / underline / letter label)
+- Section E: Footer — "mathjokes.org" centred at PAGE_H−6 mm, same font as header (Times, normal, 12pt). Loops over all pages so multi-page worksheets get the footer on every page.
+- Section F: `doc.save(filename)` — triggers browser download
 
 ## Dependencies
 - `css/base.css` — CSS variables, reset, utility classes (`.u-hidden`, `.u-text-sm`, etc.)
 - `js/utils.js` — `randomChoice`, `shuffleArray`, `clamp`, `getById`, `showElement`, `hideElement`
+
+## SEO and deployment files (added 2026-03-02)
+Files at the project root:
+- `robots.txt` — permits all crawlers, references sitemap
+- `sitemap.xml` — single-URL sitemap for `https://mathjokes.org/`
+- `favicon.png` — site icon; referenced with a **relative** path (`favicon.png`, not `/favicon.png`)
+  so it resolves correctly both locally (file://) and on the live domain.
+
+Tags added to `<head>` in `index.html`:
+- `<meta name="description">` — search result snippet (~160 chars)
+- `<link rel="canonical">` — canonical URL to prevent duplicate-content issues
+- Open Graph tags (`og:title`, `og:description`, `og:type`, `og:url`) — social sharing previews
+- Twitter Card tags (`twitter:card`, `twitter:title`, `twitter:description`)
+- `<link rel="icon">` — favicon (relative path)
+- `<script type="application/ld+json">` — schema.org `SoftwareApplication` + `EducationalApplication`
 
 ## Coding conventions
 - Extensive educational comments throughout (user is learning JS/CSS)

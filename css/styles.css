@@ -2,7 +2,7 @@
    styles.css — Math Jokes Worksheet App Styles
 
    This file contains styles SPECIFIC to the Math Jokes app.
-   It builds on top of shared/css/base.css, which must be
+   It builds on top of css/base.css, which must be
    loaded first in index.html.
 
    HOW THIS WORKS WITH base.css:
