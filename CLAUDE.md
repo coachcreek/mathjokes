@@ -47,7 +47,26 @@ Private helpers: `_multiplicationTable(n)` and `_divisionTable(n)` (used inside 
 - `createAnswerDict(jokeAnswer, problemList)` — maps each letter to a unique problem by answer value
 - `generateWorksheetPDF(jokeData, answerDict, subtypeKey)` — builds PDF via jsPDF, triggers download
 
-## Joke production flag (`is_prod`)
+## Joke object fields (updated 2026-03-03)
+
+Each joke object in `jokes.js` has these fields:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | number | Sequential integer (1, 2, 3 …). Reassigned after every shuffle. |
+| `filename` | string | URL-safe slug used to name the downloaded PDF file. |
+| `joke_q` | string | The question shown on the worksheet. |
+| `joke_a` | string | The answer used to build the decode grid. |
+| `is_prod` | boolean | `true` = approved for production; `false` = draft/invisible. |
+| `answer_length` | number | Count of **alphabetic** characters in `joke_a` (spaces, hyphens, punctuation excluded). Tells you how many unique letter-codes the joke needs. |
+
+### `answer_length` field
+Added 2026-03-03. Computed by `scripts/refactor_jokes.js` and stored on each joke so
+callers can filter by difficulty without re-counting. For example, a joke with
+`answer_length: 8` needs 8 unique math-problem answers — any subtype with fewer than 8
+distinct answer values will hit the fallback path in `createAnswerDict()`.
+
+### `is_prod` flag
 
 Every joke object in `jokes.js` has an `is_prod` boolean field:
 - `true`  — fully reviewed and approved; the joke **will** appear in the app
@@ -61,6 +80,25 @@ const prodJokes = jokes.filter(joke => joke.is_prod);
 The full `jokes` array is kept in the file purely as a master list for future editing.
 
 **To promote a draft joke to production:** set `is_prod: true` in `jokes.js`. No other files need to change.
+
+### Sort order and IDs
+
+The `jokes` array is in **random order** (shuffled by `scripts/refactor_jokes.js`).
+IDs are sequential integers starting at 1, matching the array position after shuffling.
+Do **not** rely on IDs being stable across reshuffles — use `filename` as the stable
+identifier if you need to reference a specific joke persistently.
+
+### Adding or editing jokes
+
+1. Add a new entry anywhere in the array in `jokes.js` with `is_prod: false` and a
+   unique `filename`. Set `answer_length` manually by counting alphabetic chars in `joke_a`,
+   or run `node scripts/refactor_jokes.js` to recompute it (and reshuffle + renumber).
+2. When ready to publish, set `is_prod: true`.
+3. Run `npm run build` to update `dist/js/jokes.js`.
+
+**Note:** Running `scripts/refactor_jokes.js` reshuffles the whole array and reassigns
+all IDs. This is intentional — bookmarked joke IDs in `localStorage` (or URLs) will
+silently fall back to a random joke, which is acceptable for this use case.
 
 **To add a new draft joke:** add it to the `jokes` array with `is_prod: false`. It will be invisible in the app until promoted.
 
@@ -96,6 +134,87 @@ Tags added to `<head>` in `index.html`:
 - Twitter Card tags (`twitter:card`, `twitter:title`, `twitter:description`)
 - `<link rel="icon">` — favicon (relative path)
 - `<script type="application/ld+json">` — schema.org `SoftwareApplication` + `EducationalApplication`
+
+## Build system (added 2026-03-03)
+
+The app uses a simple one-step minification build so the deployed site does not expose
+the verbose source comments to casual View-Source readers.
+
+### Files
+| File | Purpose |
+|------|---------|
+| `package.json` | Lists `terser` as a dev dependency; defines `npm run build` |
+| `build.js` | Node script that reads `js/*.js`, minifies with Terser, writes to `dist/js/` |
+| `dist/js/` | **Generated output** — do NOT edit these files directly |
+| `.gitignore` | Excludes `node_modules/` and `dist/` from git |
+
+### Workflow
+```
+npm install        # first time only — installs Terser into node_modules/
+npm run build      # minifies js/*.js → dist/js/  (run after every JS change)
+```
+
+### What gets minified
+`utils.js`, `jokes.js`, `worksheet.js`, `app.js` — in that load order.
+The candidate joke files (`new_joke_candidates_*.js`) are **not** included; they are
+development-only drafts and are never loaded by `index.html`.
+
+### index.html script tags
+`index.html` loads from `dist/js/` (not `js/`). During local development, you can
+temporarily change `dist/js/` → `js/` in the four `<script src=…>` tags for quick
+testing without rebuilding, then switch back before deploying.
+
+### Minification caveats
+- Terser strips comments and shortens variable names but does NOT encrypt the code.
+  A determined user with a JS beautifier can still read the logic.
+  For this free educational tool, "discourages casual copying" is sufficient.
+- `PROBLEM_SUBTYPES` key strings (e.g. `'multiplication-by-7'`) and `id` strings
+  (e.g. `'problem-type'`) are NOT mangled because they are string literals, not
+  variable names. That is intentional — they must stay readable at runtime.
+
+## Problem Type persistence (added 2026-03-03)
+
+`app.js` saves the last selected Problem Type to `localStorage` under the key
+`'mathjokes_last_problem_type'`. On page load, it reads that key back and sets
+the dropdown before calling `updateExamples()`.
+
+Key functions in `app.js`:
+- `saveProblemType()` — called on every `'change'` event of `#problem-type`
+- `restoreProblemType()` — called once on `DOMContentLoaded`, before `updateExamples()`
+
+Both functions wrap `localStorage` access in `try/catch` so the app works fine
+if storage is unavailable (private/incognito mode with strict settings).
+
+## Multiplication problem ordering in PDF (fixed 2026-03-03)
+
+### The problem
+For multiplication subtypes where `first < second` (e.g. ×10 table generates
+`{first:1, second:10}`, `{first:2, second:10}` …; or `multiplication-1digit-2digit`
+generates `{first:3, second:47}` …), the PDF was rendering with the smaller
+single-digit number on TOP and the larger 2-digit number on BOTTOM — the reverse
+of standard paper layout.
+
+### The fix
+In Section D of `generateWorksheetPDF()` (worksheet.js), before drawing the top
+and bottom rows of each problem, we check:
+
+```js
+const isMultiply = (sign === '\u00D7');
+const topNum = (isMultiply && entry.problem.second > entry.problem.first)
+    ? entry.problem.second   // swap: put the larger number on top
+    : entry.problem.first;   // normal: first stays on top
+```
+
+The `problem` object itself is **not mutated** — we just choose which value to print
+in D1 (top row) vs D2 (bottom row). Multiplication is commutative so the answer
+is unchanged.
+
+### Affected subtypes
+- `multiplication-by-10` — 1×10 through 9×10 have 1-digit on top without fix
+- `multiplication-by-12` — 1×12 through 9×12 have 1-digit on top without fix
+- `multiplication-1digit-2digit` — all problems (first=2–9, second=12–99) need swap
+- `multiplication-mixed` — any pair where a < b needs swap
+- `multiplication-by-multiples-of-10` — first=2–9, second=10–90; most need swap
 
 ## Coding conventions
 - Extensive educational comments throughout (user is learning JS/CSS)

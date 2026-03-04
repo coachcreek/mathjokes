@@ -1744,11 +1744,31 @@ function generateWorksheetPDF(jokeData, answerDict, subtypeKey) {
             const rightX = colX + NUMBER_W;       /* Right edge of number area */
 
             /*
+               For multiplication problems, we always want the larger number
+               on top. This matters for subtypes like ×10, ×12, 1-digit×2-digit,
+               and mixed facts, where the generated problem might have a 1-digit
+               number in "first" and a 2-digit number in "second".
+
+               Multiplication is commutative (3×12 = 12×3), so swapping the
+               display order does not change the answer — it just looks correct
+               on paper.
+
+               We check: is this a multiplication problem AND is the bottom
+               number larger than the top? If so, swap for display only.
+               We do NOT mutate entry.problem — we just choose which value
+               to print in which row.
+            */
+            const isMultiply = (sign === '\u00D7');
+            const topNum = (isMultiply && entry.problem.second > entry.problem.first)
+                ? entry.problem.second
+                : entry.problem.first;
+
+            /*
                { align: 'right' } makes x the RIGHT edge of the text,
                so all numbers are right-aligned within their column.
                This mimics how stacked arithmetic looks on paper.
             */
-            doc.text(String(entry.problem.first), rightX, y, { align: 'right' });
+            doc.text(String(topNum), rightX, y, { align: 'right' });
         }
         y += ROW_H;
 
@@ -1758,8 +1778,17 @@ function generateWorksheetPDF(jokeData, answerDict, subtypeKey) {
             const colX   = MARGIN + j * COL_W;
             const rightX = colX + NUMBER_W;
 
+            /*
+               Mirror the swap logic from D1: if we put the larger number on
+               top, the smaller number belongs on the bottom row (with the sign).
+            */
+            const isMultiply = (sign === '\u00D7');
+            const botNum = (isMultiply && entry.problem.second > entry.problem.first)
+                ? entry.problem.first
+                : entry.problem.second;
+
             /* Format: "+ 7" or "− 3" or "× 8" or "÷ 4" */
-            const signedStr = `${sign} ${entry.problem.second}`;
+            const signedStr = `${sign} ${botNum}`;
             doc.text(signedStr, rightX, y, { align: 'right' });
 
             /*

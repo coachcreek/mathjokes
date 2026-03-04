@@ -448,16 +448,98 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
     /* ----------------------------------------------------------
+       PROBLEM TYPE PERSISTENCE WITH localStorage
+
+       localStorage is a built-in browser feature that lets a web
+       page save small pieces of text data that survive page refreshes
+       and browser restarts (unlike regular JavaScript variables,
+       which reset every time the page loads).
+
+       We use it here to remember the last Problem Type the teacher
+       chose. Next time they open the page, the dropdown is pre-set
+       to that type instead of defaulting back to the first option.
+
+       Key API calls:
+         localStorage.setItem(key, value) — Save a string under a key.
+         localStorage.getItem(key)        — Read back a saved string
+                                            (returns null if not found).
+
+       We store just the subtype key string (e.g. 'multiplication-by-7').
+       That is small and safe — no personal data is stored.
+    ---------------------------------------------------------- */
+
+    /* The key we use to store the selection in localStorage */
+    const STORAGE_KEY = 'mathjokes_last_problem_type';
+
+    /**
+     * Saves the currently selected problem type to localStorage so it
+     * can be restored the next time the user visits the page.
+     */
+    function saveProblemType() {
+        /*
+           localStorage.setItem writes to the browser's local storage.
+           If storage is disabled (e.g. in a private/incognito window
+           with strict settings), this can throw an error. We catch it
+           silently so the app still works — persistence just won't
+           happen in that case.
+        */
+        try {
+            localStorage.setItem(STORAGE_KEY, problemTypeSelect.value);
+        } catch (e) {
+            /* Storage is unavailable — that is fine, just skip saving */
+        }
+    }
+
+    /**
+     * Restores the previously saved problem type from localStorage.
+     * If nothing was saved (first visit) or the saved key no longer
+     * exists in PROBLEM_SUBTYPES, the dropdown stays on its default
+     * first option.
+     */
+    function restoreProblemType() {
+        let saved;
+        try {
+            saved = localStorage.getItem(STORAGE_KEY);
+        } catch (e) {
+            /* Storage is unavailable — start fresh */
+            return;
+        }
+
+        /*
+           Only restore if:
+             1. Something was actually saved (saved is not null).
+             2. That key still exists as a valid subtype in worksheet.js.
+                (It might not if a subtype was renamed or removed since
+                 the user last visited.)
+        */
+        if (saved && PROBLEM_SUBTYPES[saved]) {
+            problemTypeSelect.value = saved;
+        }
+    }
+
+    /*
+       Hook into the existing 'change' event listener so every time the
+       teacher picks a new type, we also save it. We add this listener
+       alongside the updateExamples() listener already registered above.
+    */
+    problemTypeSelect.addEventListener('change', saveProblemType);
+
+
+    /* ----------------------------------------------------------
        INITIAL STATE
 
        Run these once immediately when the page loads so that:
          • The joke dropdown is fully populated before the teacher
            interacts with it.
-         • The example problems list is populated right away.
+         • The previously chosen problem type is restored (if any).
+         • The example problems list is populated for the current
+           (possibly restored) selection.
          • The user sees something useful without having to interact first.
     ---------------------------------------------------------- */
 
     populateJokeSelect();
+    restoreProblemType();   /* ← restore before updateExamples so the preview
+                                 reflects the restored selection right away */
     updateExamples();
 
 });   /* End of DOMContentLoaded */

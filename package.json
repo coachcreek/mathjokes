@@ -1,0 +1,12 @@
+{
+  "name": "mathjokes",
+  "version": "1.0.0",
+  "description": "Math Jokes Worksheet Generator — build scripts",
+  "private": true,
+  "scripts": {
+    "build": "node build.js"
+  },
+  "devDependencies": {
+    "terser": "^5.0.0"
+  }
+}

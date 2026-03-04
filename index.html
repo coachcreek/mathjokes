@@ -594,7 +594,7 @@
        PAGE FOOTER
        ===================================================== -->
   <footer class="page-footer" role="contentinfo">
-    <p>Math Jokes Worksheet Generator &mdash; part of the <strong>web-apps</strong> project.</p>
+    <p>Math Jokes Worksheet Generator &mdash; a free resource for teachers and parents.</p>
     <p style="margin-top: var(--space-2);">
       PDF generation powered by
       <a href="https://github.com/parallax/jsPDF" target="_blank" rel="noopener noreferrer">jsPDF</a>.
@@ -609,19 +609,44 @@
        each file can call only functions defined earlier.
        ===================================================== -->
 
-  <!-- 1. Utilities — defines randomChoice, shuffleArray, clamp, getById, etc. -->
-  <script src="js/utils.js"></script>
+  <!--
+    MINIFIED SCRIPTS (loaded from dist/js/)
+    ─────────────────────────────────────────────────────────────────
+    These are the production versions of the JS files, processed by
+    the build script (build.js). They have been minified with Terser:
+      • All comments stripped
+      • Variable names shortened to single letters
+      • Whitespace removed
 
-  <!-- 2. Jokes data — defines the global "jokes" array -->
-  <script src="js/jokes.js"></script>
+    The human-readable source files live in js/ and are the ones you
+    should edit. After making changes, run:
 
-  <!-- 3. Worksheet logic — defines PROBLEM_SUBTYPES, createProblemList,
+        npm install    (first time only — installs Terser)
+        npm run build  (generates/updates the dist/js/ files)
+
+    LOAD ORDER STILL MATTERS — same as before:
+    utils.js → jokes.js → worksheet.js → app.js
+    Each file can only call functions defined by an earlier script.
+
+    DEVELOPMENT TIP:
+    If you want to quickly test a JS change without rebuilding, you can
+    temporarily change "dist/js/" to "js/" in the four src= paths below,
+    reload the page, test, then switch back and run npm run build before
+    deploying.
+  -->
+
+  <!-- 1. Utilities — randomChoice, shuffleArray, clamp, getById, etc. -->
+  <script src="dist/js/utils.js"></script>
+
+  <!-- 2. Jokes data — the "jokes" array and "prodJokes" filter -->
+  <script src="dist/js/jokes.js"></script>
+
+  <!-- 3. Worksheet logic — PROBLEM_SUBTYPES, createProblemList,
           getSampleProblems, createAnswerDict, generateWorksheetPDF -->
-  <script src="js/worksheet.js"></script>
+  <script src="dist/js/worksheet.js"></script>
 
-  <!-- 4. App controller — reads the DOM, attaches event listeners,
-          calls the functions above. Must be last. -->
-  <script src="js/app.js"></script>
+  <!-- 4. App controller — reads DOM, wires events, calls worksheet.js -->
+  <script src="dist/js/app.js"></script>
 
 </body>
 </html>
