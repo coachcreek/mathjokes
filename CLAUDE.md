@@ -145,14 +145,37 @@ the verbose source comments to casual View-Source readers.
 |------|---------|
 | `package.json` | Lists `terser` as a dev dependency; defines `npm run build` |
 | `build.js` | Node script that reads `js/*.js`, minifies with Terser, writes to `dist/js/` |
-| `dist/js/` | **Generated output** — do NOT edit these files directly |
-| `.gitignore` | Excludes `node_modules/` and `dist/` from git |
+| `dist/js/` | **Generated output — must be committed to git** (see bug note below) |
+| `.gitignore` | Excludes `node_modules/` only — `dist/` is intentionally tracked |
 
 ### Workflow
 ```
 npm install        # first time only — installs Terser into node_modules/
 npm run build      # minifies js/*.js → dist/js/  (run after every JS change)
+git add dist/      # stage the updated minified files
+git commit         # commit them alongside the source change
 ```
+
+### IMPORTANT — why dist/ must be committed (bug fixed 2026-03-04)
+
+A previous developer added `dist/` to `.gitignore` on the assumption that generated
+files should not be version-controlled. That is normally good practice, **but it
+breaks this deployment.**
+
+Here is why:
+
+- `index.html` loads scripts from `dist/js/` (e.g. `<script src="dist/js/app.js">`).
+- Cloudflare deploys the repository as-is (via `wrangler.jsonc`).
+- If `dist/` is gitignored, the minified files are never pushed to the repo, so
+  Cloudflare never has them, so the browser gets a 404 for every script tag.
+- The site loads, but none of the JavaScript runs, and the worksheet generator is broken.
+
+**The fix:** `dist/` was removed from `.gitignore`. The minified `dist/js/` files
+are now committed and deployed just like any other asset file (CSS, images, etc.).
+
+**Rule of thumb for this project:** after any edit to a `js/*.js` file, always run
+`npm run build` and commit *both* the source change and the updated `dist/js/` file
+in the same commit. That way the two are always in sync.
 
 ### What gets minified
 `utils.js`, `jokes.js`, `worksheet.js`, `app.js` — in that load order.
