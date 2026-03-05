@@ -237,6 +237,41 @@
 }
 
 /*
+   The joke search box that sits above the joke <select>.
+   Styled to match .form-select so the two controls look like a pair.
+   We leave out the SVG arrow background since this is a text input, not
+   a dropdown — just a plain left-padded text field with the same border.
+*/
+.joke-search {
+    display: block;
+    width: 100%;
+    padding: var(--space-3) var(--space-4);
+    border: 1.5px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background-color: var(--color-surface);
+    font-size: var(--font-size-md);
+    color: var(--color-text);
+    margin-bottom: var(--space-2);   /* Small gap between the search box and the select */
+
+    transition: border-color var(--transition-fast),
+                box-shadow   var(--transition-fast);
+}
+
+.joke-search::placeholder {
+    color: var(--color-text-muted);
+}
+
+.joke-search:hover {
+    border-color: var(--color-primary);
+}
+
+.joke-search:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px var(--color-primary-light);
+}
+
+/*
    <optgroup> creates labelled sections within a <select>.
    Browser support for styling optgroup varies, but we can at least
    set font styling on the label that most browsers will honour.

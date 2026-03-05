@@ -452,6 +452,27 @@
           <label class="form-label" for="joke-select">Choose a Joke</label>
 
           <!--
+            The search box filters the joke dropdown as you type.
+            It searches both the joke question AND the answer, so you can
+            type part of the answer (e.g. "wrec") to find "A Wreck-tangle".
+            app.js listens for 'input' events on this field and hides/shows
+            <option> elements in the joke-select dropdown accordingly.
+
+            aria-controls tells screen readers that this input controls the
+            joke-select dropdown. aria-label gives the input an accessible name
+            since it shares a label with the <select> below it.
+          -->
+          <input
+            type="search"
+            id="joke-search"
+            class="joke-search"
+            placeholder="Type to search jokes…"
+            aria-label="Search jokes by question or answer"
+            aria-controls="joke-select"
+            autocomplete="off"
+          >
+
+          <!--
             Only the "Random" option is hard-coded here. The remaining
             options — one per joke — are appended dynamically by app.js
             when the page loads, using the jokes array from jokes.js.

@@ -90,6 +90,9 @@ document.addEventListener('DOMContentLoaded', function () {
     /* The <select> for choosing a specific joke (or leaving it on Random) */
     const jokeSelectEl      = getById('joke-select');
 
+    /* The search box that filters the joke dropdown as you type */
+    const jokeSearchEl      = getById('joke-search');
+
     /* The main "Create Worksheet PDF" button */
     const generateBtn       = getById('generate-btn');
 
@@ -121,6 +124,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
     /* The main "Generate Worksheet" button */
     generateBtn.addEventListener('click', handleGenerate);
+
+    /*
+       Filter the joke dropdown as the teacher types in the search box.
+       'input' fires on every keystroke (unlike 'change' which only fires
+       when the field loses focus), so the dropdown updates in real time.
+    */
+    jokeSearchEl.addEventListener('input', filterJokeSelect);
 
 
     /* ----------------------------------------------------------
@@ -442,7 +452,92 @@ document.addEventListener('DOMContentLoaded', function () {
             */
             option.textContent = `${joke.joke_q} [${joke.joke_a}]`;
 
+            /*
+               data-search is used by filterJokeSelect() to match against
+               the typed query. We store the combined question + answer in
+               lowercase so the comparison is case-insensitive.
+               Storing it here (once, at creation time) is faster than
+               re-reading and lowercasing textContent on every keystroke.
+            */
+            option.dataset.search = `${joke.joke_q} ${joke.joke_a}`.toLowerCase();
+
             jokeSelectEl.appendChild(option);
+        }
+    }
+
+
+    /* ----------------------------------------------------------
+       JOKE SEARCH / FILTER
+
+       Filters the joke <select> options in real time as the teacher
+       types in the joke-search input.
+
+       HOW IT WORKS:
+         Each <option> in the joke dropdown stores the full search text
+         (question + answer) in a data-search attribute, set once when
+         the options are created in populateJokeSelect().
+
+         On every keystroke, we compare the typed query against each
+         option's data-search value. Non-matching options are hidden
+         by setting the "hidden" attribute, which removes them from
+         the visible list but keeps them in the DOM so they can
+         reappear when the query changes.
+
+         If the currently selected option becomes hidden (i.e. it no
+         longer matches the filter), we reset the selection to "Random"
+         so the dropdown never silently holds a hidden, invisible value.
+
+         The "Random" option (value="random") is always shown regardless
+         of the search query, so the teacher can always clear back to it.
+    ---------------------------------------------------------- */
+
+    /**
+     * Filters the joke dropdown options based on the current search input.
+     * Called on every 'input' event from jokeSearchEl.
+     */
+    function filterJokeSelect() {
+        /*
+           Normalize the query: lowercase and trimmed so that "WREC",
+           " wrec", and "wrec" all match the same options.
+        */
+        const query = jokeSearchEl.value.toLowerCase().trim();
+
+        /* Track whether the currently selected option is still visible */
+        let selectedOptionIsVisible = false;
+
+        /* Loop over every <option> in the joke dropdown */
+        const options = jokeSelectEl.options;
+        for (let i = 0; i < options.length; i++) {
+            const option = options[i];
+
+            /* Always keep the "Random" option visible */
+            if (option.value === 'random') {
+                option.hidden = false;
+                continue;
+            }
+
+            /*
+               data-search holds the combined "question [answer]" text,
+               set in populateJokeSelect(). We check if it contains the query.
+               An empty query matches everything (shows all options).
+            */
+            const searchText = option.dataset.search || '';
+            const matches    = query === '' || searchText.includes(query);
+
+            option.hidden = !matches;
+
+            /* Check if the currently-selected option is still visible */
+            if (option.selected && matches) {
+                selectedOptionIsVisible = true;
+            }
+        }
+
+        /*
+           If the selected option was hidden by the filter, reset to "Random"
+           so the dropdown value is never an invisible, inaccessible entry.
+        */
+        if (!selectedOptionIsVisible) {
+            jokeSelectEl.value = 'random';
         }
     }
 
