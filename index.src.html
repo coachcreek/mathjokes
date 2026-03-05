@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<!--
+  index.html — Math Jokes Worksheet Generator
+
+  HOW AN HTML PAGE IS STRUCTURED:
+  Every HTML page has this shape:
+
+    <!DOCTYPE html>          ← tells the browser which HTML version
+    <html lang="en">        ← root element; lang helps screen readers
+      <head>...</head>      ← metadata, stylesheets, scripts (not shown on page)
+      <body>...</body>      ← everything the user sees
+    </html>
+
+  LOADING ORDER IN THE BROWSER:
+  1. The browser reads the <head> and loads stylesheets (<link rel="stylesheet">).
+  2. It reads and builds the <body> structure.
+  3. <script> tags at the END of <body> run AFTER the HTML structure is ready.
+     This is why scripts are placed at the bottom: they can safely find
+     elements by ID without risk of "element not found yet" errors.
+     (The alternative is wrapping code in a DOMContentLoaded listener,
+     which we also do in app.js as an extra safety net.)
+
+  DEPENDENCIES LOADED IN THIS FILE:
+  1. css/base.css   — CSS reset, variables, utilities (load first)
+  2. css/styles.css        — App-specific styles (extends base.css)
+  3. jsPDF (CDN)           — Third-party library for PDF generation
+  4. js/utils.js    — Helper functions (randomChoice, etc.)
+  5. js/jokes.js           — The jokes data array
+  6. js/worksheet.js       — Worksheet logic + PDF generation (calls utils.js)
+  7. js/app.js             — UI controller (calls worksheet.js + utils.js)
+
+  The order of scripts matters: each file can only call functions that
+  have already been defined by an earlier <script> tag.
+-->
+<html lang="en">
+
+<head>
+  <!-- Character encoding: UTF-8 supports all Unicode characters -->
+  <meta charset="UTF-8">
+
+  <!--
+    Viewport meta tag — essential for responsive (mobile-friendly) design.
+    Without it, mobile browsers render the page at desktop width and scale
+    it down, making everything tiny.
+    width=device-width  → use the device's actual screen width
+    initial-scale=1.0   → don't zoom in or out when the page loads
+  -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- The text shown in the browser tab and bookmarks -->
+  <title>Math Jokes Worksheet Generator</title>
+
+  <!--
+    Meta description — the sentence shown under the page title in search
+    engine results. Keep it under ~160 characters so it is not cut off.
+    Search engines use this text when they do not find a better summary
+    in the page body.
+  -->
+  <meta name="description" content="Free printable math worksheets with a fun twist — solve the problems to decode a silly joke! Choose from 34+ math skills covering addition, subtraction, multiplication, and division.">
+
+  <!--
+    Canonical tag — tells search engines that this URL is the "official"
+    version of the page. This prevents duplicate-content issues if the
+    site is ever reachable via www., http://, or other variations.
+  -->
+  <link rel="canonical" href="https://mathjokes.org/">
+
+  <!--
+    Open Graph tags — control how this page appears when shared on social
+    media platforms (Facebook, LinkedIn, iMessage link previews, etc.).
+    og:type "website" is the default for a standalone web app.
+  -->
+  <meta property="og:title"       content="Math Jokes Worksheet Generator">
+  <meta property="og:description" content="Create printable math worksheets where solving problems reveals a silly joke!">
+  <meta property="og:type"        content="website">
+  <meta property="og:url"         content="https://mathjokes.org/">
+
+  <!--
+    Twitter Card tags — control the preview shown when a link is shared
+    on Twitter/X. "summary" shows a small card with title + description.
+    Change to "summary_large_image" if you add an og:image screenshot.
+  -->
+  <meta name="twitter:card"        content="summary">
+  <meta name="twitter:title"       content="Math Jokes Worksheet Generator">
+  <meta name="twitter:description" content="Free printable math worksheets where kids decode a joke by solving math problems.">
+
+  <!--
+    Favicon — the small icon shown in the browser tab and bookmarks.
+    Google also displays it next to the page title in search results.
+    Place a favicon.png file at the root of the site to activate this.
+  -->
+  <link rel="icon" type="image/png" href="favicon.png">
+
+  <!--
+    JSON-LD structured data — a machine-readable description of this page
+    that search engines (especially Google) use to understand its content.
+    SoftwareApplication + EducationalApplication signals that this is a
+    free educational tool, which can unlock rich result features.
+    This script tag is invisible to users; it only communicates with bots.
+  -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Math Jokes Worksheet Generator",
+    "description": "Create free printable math worksheets where solving problems reveals a silly joke.",
+    "applicationCategory": "EducationalApplication",
+    "url": "https://mathjokes.org/",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "audience": {
+      "@type": "EducationalAudience",
+      "educationalRole": "student"
+    }
+  }
+  </script>
+
+  <!--
+    Stylesheets: loaded in order. base.css goes first so its CSS variables
+    are available when styles.css references them with var().
+    The path "css/base.css" means:
+      css/base.css = then navigate to this file
+  -->
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/styles.css">
+
+  <!--
+    jsPDF — a third-party JavaScript library for creating PDF files
+    in the browser. We load it from a CDN (Content Delivery Network),
+    which means the file is hosted on an external server.
+
+    The UMD (Universal Module Definition) build of jsPDF exposes
+    itself as window.jspdf, which worksheet.js then reads.
+
+    Note: Loading from a CDN without a Subresource Integrity (SRI) hash.
+    SRI hashes verify the file was not tampered with. To add SRI,
+    visit https://cdnjs.com/libraries/jspdf and copy the integrity
+    attribute shown there, then add integrity="..." crossorigin="anonymous"
+    to this script tag.
+  -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+
+<body>
+
+  <!-- =====================================================
+       PAGE HEADER
+       The banner at the top of the page.
+       role="banner" is an ARIA landmark role that helps
+       screen readers understand the page structure.
+       ===================================================== -->
+  <header class="page-header" role="banner">
+    <h1 class="page-header__title">Math Jokes Worksheet Generator</h1>
+    <p class="page-header__subtitle">
+      Create a printable math worksheet where solving problems reveals a silly joke!
+    </p>
+  </header>
+
+
+  <!-- =====================================================
+       MAIN CONTENT
+       role="main" marks this as the primary content area.
+       There should be exactly one <main> per page.
+       ===================================================== -->
+  <main class="page-main" role="main">
+
+    <!-- Two-column layout: Settings on left, Preview on right -->
+    <div class="layout-grid">
+
+      <!-- =================================================
+           LEFT COLUMN — SETTINGS PANEL
+           The teacher selects the problem type here.
+           ================================================= -->
+      <section class="card" aria-labelledby="settings-title">
+        <h2 class="card__title" id="settings-title">
+          <span class="card__title-icon" aria-hidden="true">⚙️</span>
+          Worksheet Settings
+        </h2>
+
+        <!-- Problem Type Selector -->
+        <div class="form-group">
+          <!--
+            <label for="X"> links a label to the input with id="X".
+            Clicking the label focuses the input (important for usability).
+            The "for" attribute must match the input's "id" exactly.
+          -->
+          <label class="form-label" for="problem-type">Choose a Problem Type</label>
+
+          <!--
+            <select> creates a dropdown menu.
+            <optgroup label="…"> groups related options under a heading.
+            Each <option value="key">Label</option> appears in the dropdown;
+            the "value" is what JavaScript reads (it matches a key in
+            PROBLEM_SUBTYPES inside worksheet.js).
+
+            OPERATION FAMILIES:
+              Addition       — Adding numbers together.
+              Subtraction    — Finding the difference between numbers.
+              Multiplication — Repeated addition; times tables.
+              Division       — Splitting into equal groups; inverse of multiplication.
+
+            SKIPPED SUBTYPES (not listed here because they yield too few
+            unique answer codes for the decode key to work):
+              "Partners of 10" — all answers equal 10 (only 1 unique code).
+              "Multiplying by 0" — all answers are 0 (only 1 unique code).
+              "Multiplying by 1" — answer equals the first number; trivially boring.
+          -->
+          <select class="form-select" id="problem-type">
+
+            <!-- ─────────────── ADDITION ─────────────── -->
+            <optgroup label="Addition">
+
+              <!--
+                Single-digit addition: both operands 1–9.
+                The foundational addition skill. Generates answers 2–18
+                (17 unique values).
+              -->
+              <option value="addition-single-digit">Single-digit addition</option>
+
+              <!--
+                Adding only 1, 2, or 3 to numbers up to 30.
+                Builds "counting on" fluency. Generates answers 2–33
+                (32 unique values).
+              -->
+              <option value="addition-small-addends">Adding 1, 2, and 3 to numbers</option>
+
+              <!--
+                Addition with teen numbers: 13–19 + 1–9.
+                Focuses on crossing the tens boundary.
+                Generates answers 14–28 (15 unique values).
+              -->
+              <option value="addition-teen-numbers">Addition with teen numbers</option>
+
+              <!--
+                Adding ten to any number 1–90.
+                Reinforces place-value: only the tens digit changes.
+                Generates answers 11–100 (90 unique values).
+              -->
+              <option value="addition-add-ten">Adding ten to any number</option>
+
+              <!--
+                Adding a multiple of ten (10, 20, 30, 40, or 50) to a 2-digit number.
+                Extends "+10" understanding to larger multiples.
+                Large pool of unique answers.
+              -->
+              <option value="addition-add-tens">Adding tens to numbers</option>
+
+              <!--
+                Adding a 1-digit number (1–9) to a 2-digit number (10–99).
+                Introduces regrouping (carrying).
+                Generates answers 11–108 (98 unique values).
+              -->
+              <option value="addition-1digit-2digit">Adding 1-digit numbers to 2-digit numbers</option>
+
+              <!--
+                Doubles: n + n for n = 1–20. An explicitly taught strategy
+                in grades 1–2; knowing doubles helps with near-doubles too.
+                Generates answers 2, 4, 6, … 40 (20 unique values).
+              -->
+              <option value="addition-doubles">Doubles (1+1 through 20+20)</option>
+
+              <!--
+                Near-doubles: n + (n+1) for n = 1–15. Students apply their
+                doubles knowledge and adjust by 1 (e.g. 6+6=12, so 6+7=13).
+                Generates answers 3, 5, 7, … 31 (15 unique values, all odd).
+              -->
+              <option value="addition-near-doubles">Near-doubles (n + the next number)</option>
+
+              <!--
+                Two-digit + two-digit addition with no carrying (regrouping).
+                Both numbers are 11–49; ones digits sum to less than 10.
+                Generates a very large pool of answers spanning 22–88.
+              -->
+              <option value="addition-2digit-no-regroup">2-digit + 2-digit (no regrouping)</option>
+
+              <!--
+                Two-digit + two-digit addition WITH carrying (regrouping).
+                Both numbers are 11–49; ones digits sum to 10 or more.
+                Generates a very large pool of answers spanning 22–98.
+              -->
+              <option value="addition-2digit-regroup">2-digit + 2-digit (with regrouping)</option>
+
+              <!--
+                Adding multiples of 10: both numbers are 10, 20, 30, … 90.
+                Only the tens digit changes; ones digit is always 0.
+                Generates answers 20, 30, 40, … 180 (17 unique values).
+              -->
+              <option value="addition-multiples-of-ten">Adding multiples of 10 (e.g. 30 + 50)</option>
+
+            </optgroup><!-- end Addition -->
+
+
+            <!-- ─────────────── SUBTRACTION ─────────────── -->
+            <optgroup label="Subtraction">
+
+              <!--
+                Single-digit subtraction: first 1–9, second 1–9, result ≥ 0.
+                The subtraction counterpart to single-digit addition.
+                Generates answers 0–8 (9 unique values).
+                NOTE: Smaller answer pool — works best for jokes with
+                short answers (≤9 distinct letters).
+              -->
+              <option value="subtraction-single-digit">Single-digit subtraction</option>
+
+              <!--
+                Subtracting 1, 2, or 3 from numbers 4–30.
+                Mirrors the addition-small-addends skill level.
+                Generates answers 1–29 (29 unique values).
+              -->
+              <option value="subtraction-small-amounts">Subtracting 1, 2, and 3 from numbers</option>
+
+              <!--
+                Subtraction with teen numbers: 13–19 − 1–9, result ≥ 0.
+                The inverse of addition with teen numbers.
+                Generates answers 4–18 (15 unique values).
+              -->
+              <option value="subtraction-teen-numbers">Subtraction with teen numbers</option>
+
+              <!--
+                Subtracting ten from a number 11–99.
+                Reinforces place-value: only the tens digit changes.
+                Generates answers 1–89 (89 unique values).
+              -->
+              <option value="subtraction-subtract-ten">Subtracting ten from a number</option>
+
+              <!--
+                Subtracting a 1-digit number (1–9) from a 2-digit number (10–99).
+                Introduces borrowing (regrouping).
+                Generates answers 1–98 (98 unique values).
+              -->
+              <option value="subtraction-1digit-from-2digit">Subtracting 1-digit from 2-digit numbers</option>
+
+              <!--
+                Two-digit minus two-digit subtraction with no borrowing.
+                Top number 21–79, bottom number 11–69; ones digit of top ≥
+                ones digit of bottom. Very large pool of answers (roughly 10–68).
+              -->
+              <option value="subtraction-2digit-no-regroup">2-digit &minus; 2-digit (no regrouping)</option>
+
+              <!--
+                Two-digit minus two-digit subtraction WITH borrowing.
+                Top number 21–79, bottom number 12–79; ones digit of top <
+                ones digit of bottom (triggering the borrow). Large answer pool.
+              -->
+              <option value="subtraction-2digit-regroup">2-digit &minus; 2-digit (with regrouping)</option>
+
+              <!--
+                Subtracting from 100: 100 minus n, for n = 1–99.
+                A classic mental-math benchmark that reinforces complementary
+                pairs (100 − n) + n = 100. Generates answers 1–99 (99 unique values).
+              -->
+              <option value="subtraction-from-100">Subtracting from 100 (100 &minus; n)</option>
+
+            </optgroup><!-- end Subtraction -->
+
+
+            <!-- ─────────────── MULTIPLICATION ─────────────── -->
+            <!--
+              Each entry below covers one complete times-table (1×n through 12×n).
+              The fixed factor n is shown as the second number (with the × sign),
+              which matches how times tables are traditionally presented on paper:
+
+                  1       2       3     ...    12
+                × 7     × 7     × 7           × 7
+                ───     ───     ───           ───
+                  7      14      21            84
+
+              Each single-table subtype generates 12 unique answers (one per row).
+              "Mixed multiplication facts" covers all tables 2–12 for review.
+            -->
+            <optgroup label="Multiplication">
+              <option value="multiplication-by-2">Multiplying by 2 (×2 table)</option>
+              <option value="multiplication-by-3">Multiplying by 3 (×3 table)</option>
+              <option value="multiplication-by-4">Multiplying by 4 (×4 table)</option>
+              <option value="multiplication-by-5">Multiplying by 5 (×5 table)</option>
+              <option value="multiplication-by-6">Multiplying by 6 (×6 table)</option>
+              <option value="multiplication-by-7">Multiplying by 7 (×7 table)</option>
+              <option value="multiplication-by-8">Multiplying by 8 (×8 table)</option>
+              <option value="multiplication-by-9">Multiplying by 9 (×9 table)</option>
+              <option value="multiplication-by-10">Multiplying by 10 (×10 table)</option>
+              <option value="multiplication-by-11">Multiplying by 11 (×11 table)</option>
+              <option value="multiplication-by-12">Multiplying by 12 (×12 table)</option>
+              <option value="multiplication-mixed">Mixed multiplication facts (all tables)</option>
+
+              <!--
+                1-digit × 2-digit: taught in grades 3–4 via the distributive
+                property and area models. First true "multi-digit" multiplication.
+              -->
+              <option value="multiplication-1digit-2digit">1-digit &times; 2-digit numbers</option>
+
+              <!--
+                2-digit × 2-digit: the capstone multi-digit multiplication skill
+                in grades 4–5. Students use the standard algorithm or area model.
+              -->
+              <option value="multiplication-2digit-2digit">2-digit &times; 2-digit numbers</option>
+
+              <!--
+                Multiplying by multiples of 10: e.g. 6 × 30.
+                Taught in grade 3 as an extension of times-table knowledge into
+                place value (6 × 30 = 6 × 3 × 10).
+              -->
+              <option value="multiplication-by-multiples-of-10">Multiplying by multiples of 10 (e.g. 6 &times; 30)</option>
+
+              <!--
+                Perfect squares: n × n for n = 1–12.
+                An explicitly named set taught in grades 4–6. Foundational for
+                area, square roots, and algebraic reasoning.
+              -->
+              <option value="multiplication-perfect-squares">Perfect squares (1&times;1 through 12&times;12)</option>
+            </optgroup><!-- end Multiplication -->
+
+
+            <!-- ─────────────── DIVISION ─────────────── -->
+            <!--
+              Division facts are derived from multiplication so answers
+              are always whole numbers (no remainders). For "÷N", we
+              generate every problem where the dividend is a multiple of N:
+                N÷N=1,  2N÷N=2,  …,  12N÷N=12.
+
+              The dividend (large number) appears on top; the divisor appears
+              with the ÷ sign below it, matching long-division notation:
+
+                  24        ← dividend (first)
+               ÷   2        ← divisor (second)
+               ────
+                  12        ← quotient (answer = decode code)
+
+              Each ÷N subtype produces 12 unique quotients (1 through 12).
+            -->
+            <optgroup label="Division">
+              <option value="division-by-2">Dividing by 2 (÷2 facts)</option>
+              <option value="division-by-3">Dividing by 3 (÷3 facts)</option>
+              <option value="division-by-4">Dividing by 4 (÷4 facts)</option>
+              <option value="division-by-5">Dividing by 5 (÷5 facts)</option>
+              <option value="division-by-6">Dividing by 6 (÷6 facts)</option>
+              <option value="division-by-7">Dividing by 7 (÷7 facts)</option>
+              <option value="division-by-8">Dividing by 8 (÷8 facts)</option>
+              <option value="division-by-9">Dividing by 9 (÷9 facts)</option>
+              <option value="division-by-10">Dividing by 10 (÷10 facts)</option>
+              <option value="division-by-11">Dividing by 11 (÷11 facts)</option>
+              <option value="division-by-12">Dividing by 12 (÷12 facts)</option>
+            </optgroup><!-- end Division -->
+
+          </select>
+        </div><!-- end .form-group -->
+
+        <!-- Joke Selector -->
+        <div class="form-group">
+          <label class="form-label" for="joke-select">Choose a Joke</label>
+
+          <!--
+            Only the "Random" option is hard-coded here. The remaining
+            options — one per joke — are appended dynamically by app.js
+            when the page loads, using the jokes array from jokes.js.
+            This keeps all joke data in one place (jokes.js) and avoids
+            duplicating it in the HTML.
+
+            Option values:
+              "random"  → app.js will call randomChoice() at generation time.
+              A numeric string (e.g. "1000007") → app.js finds that joke by id.
+          -->
+          <select class="form-select" id="joke-select">
+            <option value="random">🎲 Random — a different joke each time</option>
+            <!-- Options for each individual joke are inserted here by app.js -->
+          </select>
+        </div><!-- end .form-group -->
+
+        <!-- Error message (hidden by default; shown by JS when needed) -->
+        <!--
+          role="alert" tells screen readers to announce this content
+          immediately when it appears (live region).
+          The "u-hidden" class (from base.css) hides it with display:none.
+          JavaScript removes that class to reveal it.
+        -->
+        <div
+          id="error-message"
+          class="message-error u-hidden"
+          role="alert"
+          aria-live="assertive"
+        >
+          <span class="message-error__icon" aria-hidden="true">⚠️</span>
+          <!--
+            The id="error-text" span is where app.js writes the error message.
+            We target the inner span (not the outer div) so the ⚠️ icon is preserved.
+          -->
+          <span id="error-text"></span>
+        </div>
+
+      </section><!-- end .card (settings) -->
+
+
+      <!-- =================================================
+           RIGHT COLUMN — PREVIEW PANEL
+           Shows 3 sample problems so the teacher can see what
+           the worksheet will look like before generating.
+           ================================================= -->
+      <section class="card" aria-labelledby="preview-title">
+        <h2 class="card__title" id="preview-title">
+          <span class="card__title-icon" aria-hidden="true">👀</span>
+          Example Problems
+        </h2>
+
+        <p class="u-text-sm u-text-muted" style="margin-bottom: var(--space-4);">
+          These 3 samples update live as you change the Problem Type selection.
+          Your worksheet will contain similar problems.
+        </p>
+
+        <!--
+          The <ul> (unordered list) is populated entirely by JavaScript.
+          app.js writes <li class="example-item">…</li> elements into it.
+        -->
+        <ul id="examples-list" class="examples-list" aria-label="Example math problems">
+          <!-- Populated by app.js -->
+        </ul>
+
+      </section><!-- end .card (preview) -->
+
+    </div><!-- end .layout-grid -->
+
+
+    <!-- =================================================
+         GENERATE BUTTON AREA
+         Full-width section below the two-column grid.
+         ================================================= -->
+    <div class="action-area">
+
+      <!--
+        type="button" prevents the button from accidentally submitting
+        a form (the default type for <button> is "submit").
+        The click handler is attached in app.js.
+        aria-describedby links the button to the hint paragraph below,
+        so screen readers read the hint after the button label.
+      -->
+      <button
+        type="button"
+        id="generate-btn"
+        class="btn-generate"
+      >
+        📄 Create Worksheet PDF
+      </button>
+
+      <!-- Success message (hidden by default) -->
+      <!--
+        role="status" is a "polite" live region: screen readers announce
+        this content at the next available opportunity (not interrupting
+        what is currently being read). Used for success confirmations.
+      -->
+      <div
+        id="status-message"
+        class="message-status u-hidden"
+        role="status"
+        aria-live="polite"
+      >
+        <!-- Success text inserted by app.js -->
+      </div>
+
+    </div><!-- end .action-area -->
+
+
+    <!-- =================================================
+         HOW IT WORKS SECTION
+         Helps first-time users understand the worksheet
+         before generating their first PDF.
+         ================================================= -->
+    <section class="card how-it-works" aria-labelledby="how-title">
+      <h2 class="card__title" id="how-title">
+        <span class="card__title-icon" aria-hidden="true">📖</span>
+        How the Worksheet Works
+      </h2>
+
+      <ol class="steps-list">
+        <li>
+          <span><strong>Set up:</strong> Choose a math skill level and optionally a specific joke, then click Create Worksheet PDF.</span>
+        </li>
+        <li>
+          <span><strong>The code grid:</strong> The top of the worksheet shows a blank box per letter in the joke's answer, each with a code number below it.</span>
+        </li>
+        <li>
+          <span><strong>Solve the math:</strong> Each stacked equation in the worksheet has a letter label. Solve it to get the code number for that letter.</span>
+        </li>
+        <li>
+          <span><strong>Decode:</strong> Find the code number in the grid and write the letter in the box above it. Fill all boxes to reveal the joke!</span>
+        </li>
+      </ol>
+    </section>
+
+  </main><!-- end .page-main -->
+
+
+  <!-- =====================================================
+       PAGE FOOTER
+       ===================================================== -->
+  <footer class="page-footer" role="contentinfo">
+    <p>Math Jokes Worksheet Generator &mdash; a free resource for teachers and parents.</p>
+    <p style="margin-top: var(--space-2);">
+      PDF generation powered by
+      <a href="https://github.com/parallax/jsPDF" target="_blank" rel="noopener noreferrer">jsPDF</a>.
+    </p>
+  </footer>
+
+
+  <!-- =====================================================
+       SCRIPTS
+       Placed at the END of <body> so all HTML elements
+       exist before the scripts run. Load order matters:
+       each file can call only functions defined earlier.
+       ===================================================== -->
+
+  <!--
+    MINIFIED SCRIPTS (loaded from dist/js/)
+    ─────────────────────────────────────────────────────────────────
+    These are the production versions of the JS files, processed by
+    the build script (build.js). They have been minified with Terser:
+      • All comments stripped
+      • Variable names shortened to single letters
+      • Whitespace removed
+
+    The human-readable source files live in js/ and are the ones you
+    should edit. After making changes, run:
+
+        npm install    (first time only — installs Terser)
+        npm run build  (generates/updates the dist/js/ files)
+
+    LOAD ORDER STILL MATTERS — same as before:
+    utils.js → jokes.js → worksheet.js → app.js
+    Each file can only call functions defined by an earlier script.
+
+    DEVELOPMENT TIP:
+    If you want to quickly test a JS change without rebuilding, you can
+    temporarily change "dist/js/" to "js/" in the four src= paths below,
+    reload the page, test, then switch back and run npm run build before
+    deploying.
+  -->
+
+  <!-- 1. Utilities — randomChoice, shuffleArray, clamp, getById, etc. -->
+  <script src="dist/js/utils.js"></script>
+
+  <!-- 2. Jokes data — the "jokes" array and "prodJokes" filter -->
+  <script src="dist/js/jokes.js"></script>
+
+  <!-- 3. Worksheet logic — PROBLEM_SUBTYPES, createProblemList,
+          getSampleProblems, createAnswerDict, generateWorksheetPDF -->
+  <script src="dist/js/worksheet.js"></script>
+
+  <!-- 4. App controller — reads DOM, wires events, calls worksheet.js -->
+  <script src="dist/js/app.js"></script>
+
+</body>
+</html>

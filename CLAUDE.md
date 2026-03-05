@@ -6,7 +6,8 @@ Generates printable math worksheet PDFs where students solve math problems to de
 ## File map
 | File | Role |
 |------|------|
-| `index.html` | UI: two dropdowns (Problem Type, Joke), 3-example preview, generate button |
+| `index.src.html` | **Editable** HTML source — all comments, readable markup. Edit this. |
+| `index.html` | **Build output** — minified by `npm run build`. Do NOT edit directly. |
 | `css/styles.css` | App-specific styles (builds on `css/base.css`) |
 | `js/jokes.js` | Data: joke objects `{id, filename, joke_q, joke_a, is_prod}`; also exports `prodJokes` |
 | `js/worksheet.js` | Logic: PROBLEM_SUBTYPES, createProblemList, createAnswerDict, generateWorksheetPDF |
@@ -182,10 +183,16 @@ in the same commit. That way the two are always in sync.
 The candidate joke files (`new_joke_candidates_*.js`) are **not** included; they are
 development-only drafts and are never loaded by `index.html`.
 
+### HTML minification
+`index.src.html` is the editable source (with all comments and readable formatting).
+The build minifies it and overwrites `index.html`. **Never edit `index.html` directly** —
+your changes will be lost the next time `npm run build` is run.
+
 ### index.html script tags
-`index.html` loads from `dist/js/` (not `js/`). During local development, you can
-temporarily change `dist/js/` → `js/` in the four `<script src=…>` tags for quick
-testing without rebuilding, then switch back before deploying.
+`index.src.html` (and thus the built `index.html`) loads scripts from `dist/js/` (not `js/`).
+During local development, you can temporarily change `dist/js/` → `js/` in the four
+`<script src=…>` tags in `index.src.html` for quick testing without rebuilding, then
+switch back and run `npm run build` before deploying.
 
 ### Minification caveats
 - Terser strips comments and shortens variable names but does NOT encrypt the code.
