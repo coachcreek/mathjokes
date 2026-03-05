@@ -5,3 +5,11 @@ node_modules/
 # These files are reproduced from source — no need to version-control them.
 # To regenerate: npm install && npm run build
 dist/
+
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+.env*
+!.env.example
