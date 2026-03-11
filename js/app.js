@@ -87,11 +87,28 @@ document.addEventListener('DOMContentLoaded', function () {
     /* The <ul> that shows 3 sample equations in the preview panel */
     const examplesListEl    = getById('examples-list');
 
-    /* The <select> for choosing a specific joke (or leaving it on Random) */
-    const jokeSelectEl      = getById('joke-select');
+    /* --- Combobox elements --- */
 
-    /* The search box that filters the joke dropdown as you type */
-    const jokeSearchEl      = getById('joke-search');
+    /* Outer wrapper div for the whole combobox widget */
+    const jokeComboboxEl    = getById('joke-combobox');
+
+    /* The button that users click to open/close the panel */
+    const jokeComboboxTrigger = getById('joke-combobox-trigger');
+
+    /* The <span> inside the trigger that shows the selected joke label */
+    const jokeComboboxText  = jokeComboboxTrigger.querySelector('.joke-combobox__trigger-text');
+
+    /* The floating panel containing the search input and option list */
+    const jokeComboboxPanel = getById('joke-combobox-panel');
+
+    /* The search input inside the panel */
+    const jokeComboboxSearch = getById('joke-combobox-search');
+
+    /* The <ul role="listbox"> that holds the <li role="option"> items */
+    const jokeComboboxList  = getById('joke-combobox-listbox');
+
+    /* Hidden <input> that stores the machine-readable selected value */
+    const jokeValueEl       = getById('joke-value');
 
     /* The main "Create Worksheet PDF" button */
     const generateBtn       = getById('generate-btn');
@@ -109,11 +126,9 @@ document.addEventListener('DOMContentLoaded', function () {
     /* ----------------------------------------------------------
        EVENT LISTENERS
 
-       We attach one listener to the dropdown and one to the button.
-       The dropdown fires 'change' whenever the user picks a new item.
-       The button fires 'click' when the user clicks it.
-
-       These are the only two interaction points in the simplified UI.
+       problemTypeSelect fires 'change' whenever the user picks a new item.
+       generateBtn fires 'click' when the user clicks it.
+       The combobox has its own internal event wiring inside initJokeCombobox().
     ---------------------------------------------------------- */
 
     /*
@@ -124,13 +139,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     /* The main "Generate Worksheet" button */
     generateBtn.addEventListener('click', handleGenerate);
-
-    /*
-       Filter the joke dropdown as the teacher types in the search box.
-       'input' fires on every keystroke (unlike 'change' which only fires
-       when the field loses focus), so the dropdown updates in real time.
-    */
-    jokeSearchEl.addEventListener('input', filterJokeSelect);
 
 
     /* ----------------------------------------------------------
@@ -165,7 +173,13 @@ document.addEventListener('DOMContentLoaded', function () {
            jokeId is either the string "random" (the default option) or a
            numeric id string like "1000007" (a specific joke chosen by the teacher).
         */
-        const jokeId = jokeSelectEl.value;
+        /*
+           jokeValueEl is the hidden <input id="joke-value"> whose value is
+           updated by the combobox whenever the user selects an option.
+           It holds the same values the old <select> did: "random" or a
+           numeric id string like "42".
+        */
+        const jokeId = jokeValueEl.value;
 
         return {
             subtypeKey,
@@ -403,143 +417,395 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
     /* ----------------------------------------------------------
-       JOKE DROPDOWN POPULATION
+       JOKE COMBOBOX
 
-       Appends one <option> per joke to the joke selector.
-       We do this in JavaScript rather than in the HTML because:
-         • The jokes array (in jokes.js) is the single source of truth.
-         • Hard-coding 82 <option> tags in HTML would be error-prone
-           and would drift out of sync whenever jokes are added or removed.
+       A custom searchable dropdown that replicates the Streamlit selectbox
+       experience: clicking the control opens a panel with an integrated
+       search field at the top and a scrollable list of options below.
+       Typing immediately filters the list in real time — no separate
+       search box required.
 
-       Option format:  "[question] [answer]"
-         The question is what students see on the worksheet.
-         The answer (in brackets) helps the teacher identify the joke
-         so they know what their class will be decoding.
+       STATE managed by this section:
+         jokeValueEl.value       — machine-readable selected value
+                                   ("random" or a numeric id string like "42")
+         jokeComboboxText content — human-readable label shown on the trigger
+         jokeComboboxPanel.hidden — true = closed, false = open
+         activeIndex             — keyboard-highlighted option index (−1 = none)
 
-       This function must be called AFTER DOMContentLoaded so the
-       <select> element exists, and AFTER jokes.js has loaded so the
-       global "jokes" array is available.
+       HOW OPTION NODES ARE BUILT:
+         Each <li> in jokeComboboxList stores its value and search text in
+         data-* attributes, set once at population time, so filtering only
+         needs to read these attributes rather than recompute them.
+
+       ARIA COMBOBOX PATTERN (W3C ARIA 1.2):
+         trigger:  role="combobox" aria-haspopup="listbox" aria-expanded
+         listbox:  role="listbox"
+         options:  role="option"  aria-selected  id (for aria-activedescendant)
     ---------------------------------------------------------- */
 
+    /*
+       The index of the option currently highlighted by keyboard navigation.
+       −1 means "no keyboard highlight" (mouse is in control, or panel just opened).
+       We track this separately from the *selected* value so the user can
+       arrow through options without committing a selection until they press Enter.
+    */
+    let activeIndex = -1;
+
     /**
-     * Populates the joke <select> with one option per production-ready joke.
-     * Uses "prodJokes" (defined in jokes.js) which contains only jokes where
-     * is_prod is true — draft/candidate jokes are automatically excluded.
+     * Populates the combobox list with one <li> per production-ready joke,
+     * plus a "Random" item at the top.
      *
-     * The "Random" option already exists in the HTML; this function
-     * appends the specific-joke options below it.
+     * Uses prodJokes (defined in jokes.js) — draft jokes with is_prod: false
+     * are automatically excluded.
+     *
+     * The list is populated once at page load. Filtering hides/shows items
+     * without re-creating them, for efficiency.
      */
-    function populateJokeSelect() {
-        for (const joke of prodJokes) {
+    function populateJokeCombobox() {
+        /*
+           Build the full list of options: Random first, then every prod joke.
+           We create one array of plain objects so the loop below is uniform.
+        */
+        const allOptions = [
+            { value: 'random', label: '🎲 Random — a different joke each time', search: 'random' },
+            ...prodJokes.map(joke => ({
+                value:  String(joke.id),
+                label:  `${joke.joke_q} [${joke.joke_a}]`,
+                /*
+                   search holds the text we match against when the teacher types.
+                   Lowercase at creation time so we never have to lowercase it again
+                   inside the hot path of filterCombobox().
+                */
+                search: `${joke.joke_q} ${joke.joke_a}`.toLowerCase(),
+            })),
+        ];
+
+        allOptions.forEach(function (opt, index) {
             /*
-               document.createElement('option') creates a new <option> element
-               in memory but does not yet add it to the page.
-               We set its properties, then append it to the <select>.
+               Each option is an <li> with role="option" (ARIA listbox pattern).
+               id="joke-opt-N" lets us reference it via aria-activedescendant
+               on the trigger when keyboard navigation highlights this item.
             */
-            const option = document.createElement('option');
+            const li = document.createElement('li');
+            li.className       = 'joke-combobox__option';
+            li.id              = `joke-opt-${index}`;
+            li.role            = 'option';
+            li.dataset.value   = opt.value;
+            li.dataset.search  = opt.search;
+            li.textContent     = opt.label;
 
             /*
-               The value is the joke's numeric id, stored as a string.
-               HTML attribute values are always strings; we compare with
-               String(j.id) in handleGenerate() to match them correctly.
+               Mark the first item (Random) as selected on load, matching
+               jokeValueEl's initial value of "random".
             */
-            option.value = String(joke.id);
+            li.setAttribute('aria-selected', index === 0 ? 'true' : 'false');
 
             /*
-               Display text: the full question so the teacher can recognise
-               it, then the answer in square brackets to confirm the choice.
-               Example: "What kind of dogs can tell time? [Watch Dogs]"
+               Clicking an option selects it and closes the panel.
+               We use 'mousedown' instead of 'click' because 'mousedown'
+               fires before the search input's 'blur' event. If we used
+               'click', the panel would sometimes close (on blur) before
+               the click registered, making options un-clickable.
             */
-            option.textContent = `${joke.joke_q} [${joke.joke_a}]`;
+            li.addEventListener('mousedown', function (e) {
+                /*
+                   Prevent the search input from losing focus, which would
+                   trigger the blur → close sequence before this mousedown
+                   handler can select the option.
+                */
+                e.preventDefault();
+                selectOption(li);
+                closeCombobox();
+            });
 
-            /*
-               data-search is used by filterJokeSelect() to match against
-               the typed query. We store the combined question + answer in
-               lowercase so the comparison is case-insensitive.
-               Storing it here (once, at creation time) is faster than
-               re-reading and lowercasing textContent on every keystroke.
-            */
-            option.dataset.search = `${joke.joke_q} ${joke.joke_a}`.toLowerCase();
-
-            jokeSelectEl.appendChild(option);
-        }
+            jokeComboboxList.appendChild(li);
+        });
     }
 
 
     /* ----------------------------------------------------------
-       JOKE SEARCH / FILTER
-
-       Filters the joke <select> options in real time as the teacher
-       types in the joke-search input.
-
-       HOW IT WORKS:
-         Each <option> in the joke dropdown stores the full search text
-         (question + answer) in a data-search attribute, set once when
-         the options are created in populateJokeSelect().
-
-         On every keystroke, we compare the typed query against each
-         option's data-search value. Non-matching options are hidden
-         by setting the "hidden" attribute, which removes them from
-         the visible list but keeps them in the DOM so they can
-         reappear when the query changes.
-
-         If the currently selected option becomes hidden (i.e. it no
-         longer matches the filter), we reset the selection to "Random"
-         so the dropdown never silently holds a hidden, invisible value.
-
-         The "Random" option (value="random") is always shown regardless
-         of the search query, so the teacher can always clear back to it.
+       OPEN / CLOSE
     ---------------------------------------------------------- */
 
     /**
-     * Filters the joke dropdown options based on the current search input.
-     * Called on every 'input' event from jokeSearchEl.
+     * Opens the combobox panel, clears the search field, shows all options,
+     * and moves focus to the search input so the teacher can type immediately.
      */
-    function filterJokeSelect() {
-        /*
-           Normalize the query: lowercase and trimmed so that "WREC",
-           " wrec", and "wrec" all match the same options.
-        */
-        const query = jokeSearchEl.value.toLowerCase().trim();
+    function openCombobox() {
+        /* Reset search so the full list is visible every time the panel opens */
+        jokeComboboxSearch.value = '';
+        filterCombobox('');
 
-        /* Track whether the currently selected option is still visible */
-        let selectedOptionIsVisible = false;
+        /* Reset keyboard highlight */
+        activeIndex = -1;
 
-        /* Loop over every <option> in the joke dropdown */
-        const options = jokeSelectEl.options;
-        for (let i = 0; i < options.length; i++) {
-            const option = options[i];
+        /* Show the panel */
+        jokeComboboxPanel.hidden = false;
 
-            /* Always keep the "Random" option visible */
-            if (option.value === 'random') {
-                option.hidden = false;
-                continue;
-            }
-
-            /*
-               data-search holds the combined "question [answer]" text,
-               set in populateJokeSelect(). We check if it contains the query.
-               An empty query matches everything (shows all options).
-            */
-            const searchText = option.dataset.search || '';
-            const matches    = query === '' || searchText.includes(query);
-
-            option.hidden = !matches;
-
-            /* Check if the currently-selected option is still visible */
-            if (option.selected && matches) {
-                selectedOptionIsVisible = true;
-            }
-        }
+        /* Update ARIA state on the trigger */
+        jokeComboboxTrigger.setAttribute('aria-expanded', 'true');
 
         /*
-           If the selected option was hidden by the filter, reset to "Random"
-           so the dropdown value is never an invisible, inaccessible entry.
+           Move focus into the search input so the teacher can type right away.
+           We use a short setTimeout because some browsers need a tick after the
+           panel becomes visible before focus() takes effect.
         */
-        if (!selectedOptionIsVisible) {
-            jokeSelectEl.value = 'random';
-        }
+        setTimeout(function () { jokeComboboxSearch.focus(); }, 0);
     }
+
+    /**
+     * Closes the combobox panel and returns focus to the trigger button.
+     */
+    function closeCombobox() {
+        jokeComboboxPanel.hidden = true;
+        jokeComboboxTrigger.setAttribute('aria-expanded', 'false');
+        jokeComboboxTrigger.removeAttribute('aria-activedescendant');
+        activeIndex = -1;
+
+        /* Return focus to the trigger so keyboard users can tab forward */
+        jokeComboboxTrigger.focus();
+    }
+
+
+    /* ----------------------------------------------------------
+       FILTERING
+    ---------------------------------------------------------- */
+
+    /**
+     * Filters the option list to show only items whose search text contains
+     * the given query. Called on every keystroke in jokeComboboxSearch.
+     *
+     * @param {string} query - Already lowercased search string.
+     */
+    function filterCombobox(query) {
+        const trimmed = query.trim();
+        let visibleCount = 0;
+
+        /* Loop over every <li> option in the list */
+        const items = jokeComboboxList.querySelectorAll('.joke-combobox__option');
+        items.forEach(function (item) {
+            const searchText = item.dataset.search || '';
+            /*
+               An empty query shows everything.
+               "Random" (search text = "random") is always shown, which works
+               automatically because "random".includes('') is always true and
+               the user is unlikely to type a query that excludes it.
+            */
+            const matches = trimmed === '' || searchText.includes(trimmed);
+
+            item.hidden = !matches;
+            if (matches) { visibleCount++; }
+        });
+
+        /*
+           Reset keyboard highlight whenever the filter changes,
+           since the visible set of items has changed.
+        */
+        activeIndex = -1;
+        jokeComboboxTrigger.removeAttribute('aria-activedescendant');
+
+        return visibleCount;
+    }
+
+
+    /* ----------------------------------------------------------
+       SELECTION
+    ---------------------------------------------------------- */
+
+    /**
+     * Marks an option as selected: updates the hidden value input,
+     * the trigger button label, and the aria-selected attributes.
+     *
+     * @param {HTMLElement} selectedLi - The <li> option element to select.
+     */
+    function selectOption(selectedLi) {
+        /* Write the machine-readable value so getFormValues() can read it */
+        jokeValueEl.value = selectedLi.dataset.value;
+
+        /* Update the visible label on the trigger button */
+        jokeComboboxText.textContent = selectedLi.textContent;
+
+        /*
+           Update aria-selected: clear it on all options, then set it on the
+           newly chosen one. This keeps the ARIA state in sync with the UI.
+        */
+        const items = jokeComboboxList.querySelectorAll('.joke-combobox__option');
+        items.forEach(function (item) {
+            item.setAttribute('aria-selected', 'false');
+        });
+        selectedLi.setAttribute('aria-selected', 'true');
+    }
+
+
+    /* ----------------------------------------------------------
+       KEYBOARD NAVIGATION
+    ---------------------------------------------------------- */
+
+    /**
+     * Returns the array of currently visible (non-hidden) option elements.
+     * Used by keyboard navigation to step through only the visible items.
+     *
+     * @returns {HTMLElement[]}
+     */
+    function getVisibleOptions() {
+        return Array.from(
+            jokeComboboxList.querySelectorAll('.joke-combobox__option:not([hidden])')
+        );
+    }
+
+    /**
+     * Scrolls a list item into view within the scrollable listbox, if needed.
+     * Uses 'nearest' block alignment to avoid unnecessary large scrolls.
+     *
+     * @param {HTMLElement} item - The option element to scroll to.
+     */
+    function scrollOptionIntoView(item) {
+        item.scrollIntoView({ block: 'nearest' });
+    }
+
+    /**
+     * Moves the keyboard highlight to the option at the given index within
+     * the visible options array. Handles aria-activedescendant and scroll.
+     *
+     * @param {number} index - Index into the visible options array.
+     * @param {HTMLElement[]} visibleOptions - The current visible options.
+     */
+    function highlightOption(index, visibleOptions) {
+        /* Remove highlight class from any previously highlighted item */
+        jokeComboboxList
+            .querySelectorAll('.joke-combobox__option--active')
+            .forEach(function (el) { el.classList.remove('joke-combobox__option--active'); });
+
+        if (index < 0 || index >= visibleOptions.length) {
+            /* Index out of range — clear highlight */
+            jokeComboboxTrigger.removeAttribute('aria-activedescendant');
+            activeIndex = -1;
+            return;
+        }
+
+        activeIndex = index;
+        const item = visibleOptions[index];
+        item.classList.add('joke-combobox__option--active');
+
+        /*
+           aria-activedescendant points the trigger's ARIA focus to this item,
+           so screen readers announce it without moving DOM focus away from the
+           search input (which the teacher may still be typing into).
+        */
+        jokeComboboxTrigger.setAttribute('aria-activedescendant', item.id);
+
+        scrollOptionIntoView(item);
+    }
+
+
+    /* ----------------------------------------------------------
+       COMBOBOX EVENT WIRING
+    ---------------------------------------------------------- */
+
+    /*
+       Trigger: toggle open/close on click.
+    */
+    jokeComboboxTrigger.addEventListener('click', function () {
+        if (jokeComboboxPanel.hidden) {
+            openCombobox();
+        } else {
+            closeCombobox();
+        }
+    });
+
+    /*
+       Search input: filter on every keystroke, plus keyboard navigation.
+    */
+    jokeComboboxSearch.addEventListener('input', function () {
+        filterCombobox(jokeComboboxSearch.value.toLowerCase());
+    });
+
+    jokeComboboxSearch.addEventListener('keydown', function (e) {
+        const visibleOptions = getVisibleOptions();
+
+        if (e.key === 'ArrowDown') {
+            /*
+               Move highlight one step down (or wrap to 0 if at the bottom).
+               We also handle the case where activeIndex is −1 (no current
+               highlight) by starting at 0.
+            */
+            e.preventDefault();   /* Prevent the page from scrolling */
+            const next = activeIndex < visibleOptions.length - 1
+                ? activeIndex + 1
+                : 0;
+            highlightOption(next, visibleOptions);
+
+        } else if (e.key === 'ArrowUp') {
+            /*
+               Move highlight one step up (or wrap to the last item).
+            */
+            e.preventDefault();
+            const prev = activeIndex > 0
+                ? activeIndex - 1
+                : visibleOptions.length - 1;
+            highlightOption(prev, visibleOptions);
+
+        } else if (e.key === 'Enter') {
+            /*
+               Confirm the highlighted option, or if nothing is highlighted
+               but there is exactly one visible result, select that one.
+            */
+            e.preventDefault();
+            if (activeIndex >= 0 && visibleOptions[activeIndex]) {
+                selectOption(visibleOptions[activeIndex]);
+                closeCombobox();
+            } else if (visibleOptions.length === 1) {
+                selectOption(visibleOptions[0]);
+                closeCombobox();
+            }
+
+        } else if (e.key === 'Escape') {
+            /* Close without changing the selection */
+            closeCombobox();
+
+        } else if (e.key === 'Tab') {
+            /*
+               Tab closes the panel. We do NOT preventDefault here so that
+               tab focus continues moving forward in the page normally.
+            */
+            closeCombobox();
+        }
+    });
+
+    /*
+       Close the panel when the search input loses focus, UNLESS focus is
+       moving to an option inside the panel (handled by the mousedown listener
+       on each option, which calls e.preventDefault() to block this blur).
+    */
+    jokeComboboxSearch.addEventListener('blur', function () {
+        /*
+           Use a short delay so that a mousedown on an option (which fires
+           before blur) can call e.preventDefault() and prevent this close.
+           Without the delay, closeCombobox() would run before mousedown.
+        */
+        setTimeout(function () {
+            /*
+               Only close if focus has genuinely left the combobox widget.
+               document.activeElement tells us where focus went.
+            */
+            if (!jokeComboboxEl.contains(document.activeElement)) {
+                closeCombobox();
+            }
+        }, 150);
+    });
+
+    /*
+       Close the panel when clicking anywhere outside the combobox widget.
+       'mousedown' on the document fires before 'click' on any element, so
+       we can catch outside clicks before any inner element handles them.
+    */
+    document.addEventListener('mousedown', function (e) {
+        if (!jokeComboboxEl.contains(e.target)) {
+            if (!jokeComboboxPanel.hidden) {
+                closeCombobox();
+            }
+        }
+    });
 
 
     /* ----------------------------------------------------------
@@ -632,7 +898,7 @@ document.addEventListener('DOMContentLoaded', function () {
          • The user sees something useful without having to interact first.
     ---------------------------------------------------------- */
 
-    populateJokeSelect();
+    populateJokeCombobox();
     restoreProblemType();   /* ← restore before updateExamples so the preview
                                  reflects the restored selection right away */
     updateExamples();

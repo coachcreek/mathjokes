@@ -236,39 +236,201 @@
     box-shadow: 0 0 0 3px var(--color-primary-light);
 }
 
+/* ============================================================
+   JOKE COMBOBOX — custom searchable dropdown
+   Replaces the old separate search-box + native <select> pair.
+
+   HOW THE LAYOUT WORKS:
+     .joke-combobox            — position: relative so the panel can be
+                                 absolutely positioned below the trigger.
+     .joke-combobox__trigger   — full-width button that looks like .form-select.
+     .joke-combobox__panel     — floating panel; z-index lifts it above siblings.
+     .joke-combobox__search    — text input at the top of the panel.
+     .joke-combobox__list      — scrollable list of options below the search.
+     .joke-combobox__option    — individual option row.
+     .joke-combobox__option--active — keyboard-highlighted option (not yet selected).
+   ============================================================ */
+
 /*
-   The joke search box that sits above the joke <select>.
-   Styled to match .form-select so the two controls look like a pair.
-   We leave out the SVG arrow background since this is a text input, not
-   a dropdown — just a plain left-padded text field with the same border.
+   Wrapper: the anchor for the absolutely-positioned panel.
+   display: block so it takes the full column width like a form field.
 */
-.joke-search {
+.joke-combobox {
+    position: relative;
     display: block;
+}
+
+/*
+   Trigger button: visually identical to .form-select.
+   We draw our own chevron arrow using a background-image SVG, exactly
+   as .form-select does, so the two controls look like a matched pair.
+   text-align: left because <button> defaults to centered text.
+*/
+.joke-combobox__trigger {
+    display: flex;
+    align-items: center;
     width: 100%;
-    padding: var(--space-3) var(--space-4);
+    padding: var(--space-3) var(--space-10) var(--space-3) var(--space-4);
     border: 1.5px solid var(--color-border);
     border-radius: var(--radius-md);
     background-color: var(--color-surface);
     font-size: var(--font-size-md);
     color: var(--color-text);
-    margin-bottom: var(--space-2);   /* Small gap between the search box and the select */
+    text-align: left;
+    cursor: pointer;
+
+    /* Same custom arrow as .form-select */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%2364748b' stroke-width='2' d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right var(--space-3) center;
+    background-size: 16px;
 
     transition: border-color var(--transition-fast),
                 box-shadow   var(--transition-fast);
 }
 
-.joke-search::placeholder {
-    color: var(--color-text-muted);
-}
-
-.joke-search:hover {
+.joke-combobox__trigger:hover {
     border-color: var(--color-primary);
 }
 
-.joke-search:focus {
+.joke-combobox__trigger:focus {
     outline: none;
     border-color: var(--color-primary);
     box-shadow: 0 0 0 3px var(--color-primary-light);
+}
+
+/*
+   The text inside the trigger fills the available space (pushing the
+   arrow to the right edge). overflow + text-overflow truncate long
+   joke labels so they never break the layout on narrow screens.
+*/
+.joke-combobox__trigger-text {
+    flex: 1;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+/*
+   Panel: floats below the trigger, full width, with a shadow and border
+   to clearly separate it from the page content behind it.
+
+   z-index: 100 lifts it above other page elements (cards, etc.) while
+   staying well below any modal/dialog layer (typically z-index: 1000+).
+
+   max-height + overflow-y on the list (inside the panel) handles long
+   joke lists without making the panel taller than the viewport.
+*/
+.joke-combobox__panel {
+    position: absolute;
+    top: calc(100% + var(--space-1));   /* Just below the trigger with a 4px gap */
+    left: 0;
+    right: 0;
+    z-index: 100;
+
+    background-color: var(--color-surface);
+    border: 1.5px solid var(--color-primary);   /* Blue border signals the open state */
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+
+    /*
+       Column layout: search input on top, list below.
+       We let the list control the scrollable height via max-height.
+    */
+    display: flex;
+    flex-direction: column;
+}
+
+/*
+   Search input inside the panel.
+   border-bottom creates a visible divider between the search field and
+   the option list. No left/right/top border — the panel provides those.
+   border-radius only on the top corners so it blends with the panel shape.
+*/
+.joke-combobox__search {
+    flex-shrink: 0;   /* Never compress the search input */
+    padding: var(--space-3) var(--space-4);
+    border: none;
+    border-bottom: 1px solid var(--color-border);
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+    font-size: var(--font-size-md);
+    color: var(--color-text);
+    background-color: var(--color-surface);
+
+    /* Defeat browser chrome on type="search" (the × clear button, etc.) */
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.joke-combobox__search::placeholder {
+    color: var(--color-text-muted);
+}
+
+.joke-combobox__search:focus {
+    outline: none;   /* Panel border already highlights the open state */
+}
+
+/*
+   Scrollable option list.
+   max-height limits it to ~10 option rows (each ~40px tall) so the panel
+   never covers the Generate button on smaller screens.
+*/
+.joke-combobox__list {
+    list-style: none;
+    overflow-y: auto;
+    max-height: 260px;
+    margin: 0;
+    padding: var(--space-1) 0;
+}
+
+/*
+   Individual option row.
+   padding + font-size match .form-select option sizing.
+   cursor: pointer signals interactivity.
+*/
+.joke-combobox__option {
+    padding: var(--space-2) var(--space-4);
+    font-size: var(--font-size-md);
+    color: var(--color-text);
+    cursor: pointer;
+    line-height: var(--line-height-normal);
+
+    transition: background-color var(--transition-fast);
+}
+
+.joke-combobox__option:hover {
+    background-color: var(--color-primary-light);
+}
+
+/*
+   Keyboard-highlighted option (set by app.js via highlightOption()).
+   Visually distinct from hover so keyboard and mouse states look different.
+   background-color slightly darker than hover; color inverted for contrast.
+*/
+.joke-combobox__option--active {
+    background-color: var(--color-primary);
+    color: var(--color-text-inverse);
+}
+
+/*
+   Selected option: indicated by aria-selected="true".
+   A subtle left border accent (matching the example-item style) lets the
+   teacher see at a glance which joke is currently chosen when they reopen.
+*/
+.joke-combobox__option[aria-selected="true"] {
+    font-weight: var(--font-weight-medium);
+    border-left: 3px solid var(--color-primary);
+    padding-left: calc(var(--space-4) - 3px);   /* Compensate for the 3px border */
+}
+
+/*
+   When an option is BOTH selected and keyboard-highlighted, keep the
+   keyboard-active background and text color rather than showing both styles.
+*/
+.joke-combobox__option--active[aria-selected="true"] {
+    background-color: var(--color-primary);
+    color: var(--color-text-inverse);
+    border-left-color: var(--color-text-inverse);
 }
 
 /*
@@ -543,36 +705,17 @@
     }
 
     /*
-       Reduce font size for both the <select> element and its options on mobile.
+       Reduce font size for the Problem Type <select> on mobile.
 
-       WHY WE NOW TARGET THE <select> ELEMENT ITSELF:
-       Our earlier version only set font-size on .form-select option and
-       .form-select optgroup. That was the wrong target for Android Chrome.
-
+       WHY WE TARGET THE <select> ELEMENT ITSELF:
        Chrome for Android's native dropdown dialog renders its list using the
        font-size of the <select> ELEMENT — it largely ignores font-size set on
-       the individual <option> and <optgroup> elements inside it. To actually
-       reduce the text size inside Android's dropdown dialog, we must reduce
-       the font-size on .form-select itself.
+       the individual <option> and <optgroup> elements inside it.
 
-       iOS TRADEOFF — WHY THERE IS A KNOWN SIDE-EFFECT:
-       iOS Safari auto-zooms any form element whose font-size is below 16px
-       (1rem) when the user taps it to open the dropdown. With font-size at
-       0.875rem (14px) here, iOS will zoom in by roughly 14% on tap, then zoom
-       back out after the user makes a selection. This is a minor visual bump
-       rather than a true usability problem.
-
-       If that iOS behaviour ever becomes a priority to fix, the only reliable
-       option is to build a fully custom dropdown (replacing <select> with a
-       JavaScript-driven list), which gives complete CSS control over the UI.
-
-       WHY WE KEEP THE option/optgroup RULE TOO:
-       Firefox for Android and some other mobile browsers DO respect font-size
-       on <option>/<optgroup> elements. Keeping that rule is a belt-and-
-       suspenders approach that helps those browsers without harming Chrome.
-
-       iOS Safari: the native wheel picker is drawn entirely by the OS.
-       No CSS can affect the font size inside it — this is an iOS limitation.
+       The joke picker is now a fully custom combobox (.joke-combobox), so it
+       is fully controlled by CSS and does NOT have the iOS auto-zoom issue
+       that the old native <select> had. Its font sizes are set via
+       .joke-combobox__trigger and .joke-combobox__option in the combobox block.
     */
     .form-select {
         font-size: var(--font-size-sm);   /* 14px — controls Android dialog text */
@@ -581,5 +724,15 @@
     .form-select option,
     .form-select optgroup {
         font-size: var(--font-size-sm);   /* 14px — helps Firefox and other mobile browsers */
+    }
+
+    /*
+       On narrow screens, reduce the combobox option text slightly so long
+       joke labels don't wrap awkwardly inside the panel.
+    */
+    .joke-combobox__trigger,
+    .joke-combobox__option,
+    .joke-combobox__search {
+        font-size: var(--font-size-sm);
     }
 }

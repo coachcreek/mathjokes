@@ -104,10 +104,81 @@ silently fall back to a random joke, which is acceptable for this use case.
 **To add a new draft joke:** add it to the `jokes` array with `is_prod: false`. It will be invisible in the app until promoted.
 
 ## app.js flow
-1. `populateJokeSelect()` — appends one `<option>` per **production** joke to `#joke-select` from `prodJokes`
+1. `populateJokeCombobox()` — builds one `<li role="option">` per **production** joke into `#joke-combobox-listbox` from `prodJokes`
 2. `updateExamples()` — called on load + dropdown change; shows 3 sample equations
 3. `handleGenerate()` — reads `subtypeKey` + `jokeId` ("random" or numeric id string), generates PDF
 4. Joke resolution: `jokeId === 'random'` → `randomChoice(prodJokes)`, else `prodJokes.find(j => String(j.id) === jokeId)`
+
+## Joke selector — custom combobox (added 2026-03-06)
+
+The "Choose a Joke" control is a **fully custom combobox** widget, not a native `<select>`.
+It was introduced to replicate the Streamlit `selectbox` soft-key search experience:
+clicking the control opens a panel with an integrated search field at the top, and
+typing filters the list in real time — no separate search box is needed.
+
+### HTML structure (in `index.src.html`)
+```
+div.joke-combobox#joke-combobox               ← position: relative anchor
+  button.joke-combobox__trigger#joke-combobox-trigger  ← shows selected label
+    span.joke-combobox__trigger-text           ← label text (updated by JS)
+    span.joke-combobox__arrow                  ← decorative chevron (CSS only)
+  div.joke-combobox__panel#joke-combobox-panel [hidden]  ← floating panel
+    input.joke-combobox__search#joke-combobox-search     ← auto-focused on open
+    ul.joke-combobox__list#joke-combobox-listbox[role="listbox"]
+      li.joke-combobox__option[role="option"]  ← one per joke (built by JS)
+input[type="hidden"]#joke-value               ← machine-readable selected value
+```
+
+### Key JS functions (all in `app.js`)
+| Function | Purpose |
+|----------|---------|
+| `populateJokeCombobox()` | Builds `<li>` options from `prodJokes`; called once on load |
+| `openCombobox()` | Shows panel, clears search, auto-focuses search input |
+| `closeCombobox()` | Hides panel, returns focus to trigger |
+| `filterCombobox(query)` | Hides/shows `<li>` items based on `data-search` attribute |
+| `selectOption(li)` | Writes value to `#joke-value`, updates trigger label, sets `aria-selected` |
+| `highlightOption(index, visibleOptions)` | Keyboard navigation highlight (does NOT select) |
+| `getVisibleOptions()` | Returns array of non-hidden `<li>` elements for keyboard nav |
+
+### State
+- `jokeValueEl.value` (`#joke-value`) — machine-readable selected value: `"random"` or a numeric id string. `getFormValues()` reads this.
+- `jokeComboboxText.textContent` — human-readable label shown on the trigger button.
+- `jokeComboboxPanel.hidden` — `true` = closed, `false` = open.
+- `activeIndex` — integer; index of keyboard-highlighted item in `getVisibleOptions()` array. `-1` = none.
+
+### Interaction model
+- **Click trigger** → opens panel, auto-focuses search input
+- **Type** → `filterCombobox()` hides non-matching options in real time
+- **Arrow keys** → `highlightOption()` moves a visual highlight without selecting
+- **Enter** → selects highlighted option (or the only visible option if just one remains)
+- **Escape / Tab** → closes panel without changing selection
+- **Click option** → `mousedown` handler (not `click`) selects and closes; `mousedown` is used so it fires before `blur` on the search input, preventing the panel from closing before the click registers
+- **Click outside / blur** → `document mousedown` + delayed blur listener closes panel
+
+### ARIA pattern
+Follows W3C ARIA 1.2 combobox pattern:
+- trigger: `role="combobox"`, `aria-haspopup="listbox"`, `aria-expanded`, `aria-controls`, `aria-activedescendant`
+- list: `role="listbox"`
+- items: `role="option"`, `aria-selected`, unique `id` (for `aria-activedescendant`)
+
+### CSS classes (in `css/styles.css`)
+| Class | Purpose |
+|-------|---------|
+| `.joke-combobox` | Wrapper; `position: relative` anchors the panel |
+| `.joke-combobox__trigger` | Styled like `.form-select`; shows selected label + SVG arrow |
+| `.joke-combobox__trigger-text` | `flex: 1`, `overflow: hidden`, `text-overflow: ellipsis` |
+| `.joke-combobox__panel` | Absolutely positioned; `z-index: 100`; `display: flex; flex-direction: column` |
+| `.joke-combobox__search` | Search input at top of panel; `border-bottom` divider |
+| `.joke-combobox__list` | `overflow-y: auto; max-height: 260px` |
+| `.joke-combobox__option` | Individual row; hover highlight via `background-color` |
+| `.joke-combobox__option--active` | Keyboard-navigation highlight (blue bg, white text) |
+| `.joke-combobox__option[aria-selected="true"]` | Selected item accent (bold + left border) |
+
+### If you need to replace this with a library
+The widget is deliberately self-contained vanilla JS (~180 lines) with no dependencies.
+If the joke list grows very large (thousands of entries), consider replacing it with a
+library such as [Choices.js](https://github.com/Choices-js/Choices) or
+[Tom Select](https://tom-select.js.org/), which add virtual scrolling and fuzzy matching.
 
 ## PDF layout (jsPDF, US Letter, mm units, portrait)
 - Section A: Name/Date header (Times, normal, 12pt)

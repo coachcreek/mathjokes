@@ -447,46 +447,113 @@
           </select>
         </div><!-- end .form-group -->
 
-        <!-- Joke Selector -->
+        <!-- Joke Selector — custom searchable combobox -->
         <div class="form-group">
-          <label class="form-label" for="joke-select">Choose a Joke</label>
+          <label class="form-label" id="joke-combobox-label">Choose a Joke</label>
 
           <!--
-            The search box filters the joke dropdown as you type.
-            It searches both the joke question AND the answer, so you can
-            type part of the answer (e.g. "wrec") to find "A Wreck-tangle".
-            app.js listens for 'input' events on this field and hides/shows
-            <option> elements in the joke-select dropdown accordingly.
+            Custom combobox widget: replicates the Streamlit selectbox behaviour
+            where typing filters the list INSIDE the open dropdown panel.
 
-            aria-controls tells screen readers that this input controls the
-            joke-select dropdown. aria-label gives the input an accessible name
-            since it shares a label with the <select> below it.
+            Structure:
+              .joke-combobox                — wrapper (position: relative anchor)
+              .joke-combobox__trigger       — button that shows the selected value;
+                                             clicking it opens/closes the panel
+              .joke-combobox__panel         — floating panel (hidden by default)
+                .joke-combobox__search      — text input; auto-focused on open
+                .joke-combobox__list        — scrollable list of options (role="listbox")
+                  .joke-combobox__option    — individual option (role="option")
+
+            ARIA roles used:
+              role="combobox"     — the trigger announces itself as a combobox
+              aria-expanded       — true when panel is open, false when closed
+              aria-haspopup="listbox" — tells assistive tech a listbox will appear
+              role="listbox"      — the options container
+              role="option"       — each selectable item
+              aria-selected       — true on the currently selected option
+              aria-activedescendant — points to the keyboard-highlighted option id
+
+            The hidden <input id="joke-value"> stores the machine-readable value
+            ("random" or a numeric id string). app.js reads this to know which
+            joke was selected — same values as the old <select>.
           -->
-          <input
-            type="search"
-            id="joke-search"
-            class="joke-search"
-            placeholder="Type to search jokes…"
-            aria-label="Search jokes by question or answer"
-            aria-controls="joke-select"
-            autocomplete="off"
+          <div
+            class="joke-combobox"
+            id="joke-combobox"
           >
+            <!--
+              Trigger button: shows the human-readable label of the selected joke.
+              role="combobox" + aria-haspopup="listbox" is the ARIA combobox pattern.
+              aria-labelledby links it to the "Choose a Joke" label above.
+            -->
+            <button
+              type="button"
+              class="joke-combobox__trigger"
+              id="joke-combobox-trigger"
+              role="combobox"
+              aria-haspopup="listbox"
+              aria-expanded="false"
+              aria-labelledby="joke-combobox-label joke-combobox-trigger"
+              aria-controls="joke-combobox-listbox"
+            >
+              <!-- Text updated by app.js when user selects an option -->
+              <span class="joke-combobox__trigger-text">🎲 Random — a different joke each time</span>
+              <!-- Chevron arrow (CSS-drawn, matches .form-select arrow style) -->
+              <span class="joke-combobox__arrow" aria-hidden="true"></span>
+            </button>
+
+            <!--
+              Panel: shown when trigger is clicked; hidden on selection or Escape.
+              Hidden via [hidden] attribute (display:none) toggled by app.js.
+            -->
+            <div
+              class="joke-combobox__panel"
+              id="joke-combobox-panel"
+              hidden
+            >
+              <!--
+                Search input — auto-focused when panel opens.
+                aria-label makes it accessible without a visible label.
+                aria-controls links it to the listbox it filters.
+                autocomplete="off" prevents browser autofill popups.
+              -->
+              <input
+                type="search"
+                class="joke-combobox__search"
+                id="joke-combobox-search"
+                placeholder="Type to filter jokes…"
+                aria-label="Filter jokes by question or answer"
+                aria-controls="joke-combobox-listbox"
+                autocomplete="off"
+                spellcheck="false"
+              >
+
+              <!--
+                Listbox: scrollable list of options.
+                Populated dynamically by app.js (same approach as the old <select>).
+                aria-labelledby links to the form label above.
+              -->
+              <ul
+                class="joke-combobox__list"
+                id="joke-combobox-listbox"
+                role="listbox"
+                aria-labelledby="joke-combobox-label"
+                tabindex="-1"
+              >
+                <!-- Options inserted here by app.js — one <li> per joke -->
+              </ul>
+            </div><!-- end .joke-combobox__panel -->
+
+          </div><!-- end .joke-combobox -->
 
           <!--
-            Only the "Random" option is hard-coded here. The remaining
-            options — one per joke — are appended dynamically by app.js
-            when the page loads, using the jokes array from jokes.js.
-            This keeps all joke data in one place (jokes.js) and avoids
-            duplicating it in the HTML.
-
-            Option values:
-              "random"  → app.js will call randomChoice() at generation time.
-              A numeric string (e.g. "1000007") → app.js finds that joke by id.
+            Hidden input: holds the machine-readable value of the selected joke.
+            app.js writes to this; getFormValues() reads from it.
+            Values:
+              "random"         → randomChoice() at generate time
+              "42" (any number string) → find that specific joke by id
           -->
-          <select class="form-select" id="joke-select">
-            <option value="random">🎲 Random — a different joke each time</option>
-            <!-- Options for each individual joke are inserted here by app.js -->
-          </select>
+          <input type="hidden" id="joke-value" value="random">
         </div><!-- end .form-group -->
 
         <!-- Error message (hidden by default; shown by JS when needed) -->

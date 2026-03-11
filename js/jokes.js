@@ -215,6 +215,9 @@ const jokes = [
     { id:     179, filename: 'one_letter',                        joke_q: 'What starts with an E, ends with an E, but only contains one letter?', joke_a: 'An Envelope', is_prod: true, answer_length: 10 },
     { id:     180, filename: 'cat_night',                         joke_q: 'What does a cat wear at night?', joke_a: 'Paw-jamas', is_prod: true, answer_length: 8 },
     { id:     181, filename: 'sad_coffee',                        joke_q: 'What do you call a sad cup of coffee?', joke_a: 'A depresso', is_prod: false, answer_length: 9 },
+    { id:     182, filename: 'sleeping_dinosaur',                 joke_q: 'What do you call a sleeping dinosaur?', joke_a: 'A Dino-snore', is_prod: true, answer_length: 9 },
+    { id:     183, filename: 'cow_trampoline',                    joke_q: 'What do you call a cow on a trampoline?', joke_a: 'A Milk Shake', is_prod: true, answer_length: 9 },
+    { id:     184, filename: 'bowling_cat',                       joke_q: 'What kind of cat likes to go bowling?', joke_a: 'An Alley Cat', is_prod: true, answer_length: 9 },
 ]
 
 /**
