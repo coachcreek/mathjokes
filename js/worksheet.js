@@ -1744,22 +1744,32 @@ function generateWorksheetPDF(jokeData, answerDict, subtypeKey) {
             const rightX = colX + NUMBER_W;       /* Right edge of number area */
 
             /*
-               For multiplication problems, we always want the larger number
-               on top. This matters for subtypes like ×10, ×12, 1-digit×2-digit,
-               and mixed facts, where the generated problem might have a 1-digit
-               number in "first" and a 2-digit number in "second".
+               For both multiplication and most addition problems, we always
+               want the larger number on top. This matches how stacked
+               arithmetic is conventionally taught to children.
 
-               Multiplication is commutative (3×12 = 12×3), so swapping the
-               display order does not change the answer — it just looks correct
-               on paper.
+               MULTIPLICATION: matters for subtypes like ×10, ×12,
+               1-digit×2-digit, and mixed facts, where the generated problem
+               can have a 1-digit number in "first" and a 2-digit number in
+               "second". Multiplication is commutative (3×12 = 12×3) so
+               swapping the display order does not change the answer.
 
-               We check: is this a multiplication problem AND is the bottom
-               number larger than the top? If so, swap for display only.
-               We do NOT mutate entry.problem — we just choose which value
-               to print in which row.
+               ADDITION: same convention. Addition is also commutative
+               (7+12 = 12+7), so swapping is safe. The exception is the
+               single-digit subtype ('addition-single-digit'), which
+               intentionally generates every ordered pair (e.g. both 3+7
+               and 7+3) because both orderings are meaningful practice at
+               that level.
+
+               In both cases we do NOT mutate entry.problem — we just choose
+               which value to print in which row.
             */
             const isMultiply = (sign === '\u00D7');
-            const topNum = (isMultiply && entry.problem.second > entry.problem.first)
+            const isAdditionSwap = (sign === '+' && subtypeKey !== 'addition-single-digit');
+            const shouldSwap = (isMultiply || isAdditionSwap)
+                && entry.problem.second > entry.problem.first;
+
+            const topNum = shouldSwap
                 ? entry.problem.second
                 : entry.problem.first;
 
@@ -1781,9 +1791,14 @@ function generateWorksheetPDF(jokeData, answerDict, subtypeKey) {
             /*
                Mirror the swap logic from D1: if we put the larger number on
                top, the smaller number belongs on the bottom row (with the sign).
+               The same isAdditionSwap check ensures both rows are consistent.
             */
             const isMultiply = (sign === '\u00D7');
-            const botNum = (isMultiply && entry.problem.second > entry.problem.first)
+            const isAdditionSwap = (sign === '+' && subtypeKey !== 'addition-single-digit');
+            const shouldSwap = (isMultiply || isAdditionSwap)
+                && entry.problem.second > entry.problem.first;
+
+            const botNum = shouldSwap
                 ? entry.problem.first
                 : entry.problem.second;
 

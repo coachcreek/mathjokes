@@ -342,6 +342,37 @@ is unchanged.
 - `multiplication-mixed` — any pair where a < b needs swap
 - `multiplication-by-multiples-of-10` — first=2–9, second=10–90; most need swap
 
+## Addition problem ordering in PDF (fixed 2026-03-10)
+
+Same convention as multiplication: the larger number goes on top.
+Addition is commutative so swapping the display order does not change the answer.
+
+**Exception:** `addition-single-digit` intentionally generates every ordered pair
+(e.g. both 3+7 and 7+3), so the swap is deliberately skipped for that subtype.
+
+### The fix
+The existing multiplication swap logic in Section D of `generateWorksheetPDF()`
+was extended to also cover addition subtypes (excluding `addition-single-digit`):
+
+```js
+const isMultiply    = (sign === '\u00D7');
+const isAdditionSwap = (sign === '+' && subtypeKey !== 'addition-single-digit');
+const shouldSwap    = (isMultiply || isAdditionSwap)
+    && entry.problem.second > entry.problem.first;
+
+const topNum = shouldSwap ? entry.problem.second : entry.problem.first;
+```
+
+The `botNum` mirror in D2 uses the same `shouldSwap` flag.
+
+### Addition subtypes where a swap can occur
+- `addition-add-ten` — `first` can be 1–9 (< second of 10)
+- `addition-add-tens` — `first` (10–89) can be less than `second` (10–50 multiples)
+- `addition-near-doubles` — `second` is always `first + 1` (one larger)
+- `addition-2digit-no-regroup` — both 11–49; either order possible
+- `addition-2digit-regroup` — both 11–49; either order possible
+- `addition-multiples-of-ten` — both 10–90; either order possible
+
 ## Coding conventions
 - Extensive educational comments throughout (user is learning JS/CSS)
 - No emojis in code unless the user adds them to UI strings
