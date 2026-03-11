@@ -174,6 +174,31 @@ Follows W3C ARIA 1.2 combobox pattern:
 | `.joke-combobox__option--active` | Keyboard-navigation highlight (blue bg, white text) |
 | `.joke-combobox__option[aria-selected="true"]` | Selected item accent (bold + left border) |
 
+### Known bugs fixed (2026-03-10)
+
+**Bug 1 — Two "Choose a Joke" controls visible at once**
+Root cause: `.joke-combobox__panel` in `styles.css` has `display: flex`. The
+browser's built-in `[hidden]` rule is only `display: none` (no `!important`),
+so the panel's `display: flex` CSS rule overrides it and the panel is ALWAYS
+visible on screen, even when the JS sets `jokeComboboxPanel.hidden = true`.
+
+Fix: added `[hidden] { display: none !important; }` to `css/base.css` (CSS
+reset section). The `!important` ensures `[hidden]` wins over any other
+`display` rule in the app's own styles. This is a standard CSS reset pattern
+that browsers themselves should enforce but don't always do reliably.
+
+**Bug 2 — Dropdown stays open when clicking elsewhere**
+Apparent root cause: once Bug 1 was fixed and the panel could actually hide,
+this bug disappeared for the "visible panel" case. However, the previous
+`closeCombobox()` always called `jokeComboboxTrigger.focus()`, which stole
+focus from whatever the user had clicked. This was fixed by adding a
+`returnFocus` parameter to `closeCombobox()`:
+- Pass `true` when closing via keyboard (Enter, Escape) — focus returns to
+  trigger, keeping keyboard nav predictable.
+- Omit (or pass `false`) when closing via mouse click — focus stays on
+  whatever the user clicked.
+- Tab key: also omit — browser moves focus forward naturally.
+
 ### If you need to replace this with a library
 The widget is deliberately self-contained vanilla JS (~180 lines) with no dependencies.
 If the joke list grows very large (thousands of entries), consider replacing it with a

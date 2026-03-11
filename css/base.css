@@ -58,6 +58,28 @@
     padding: 0;
 }
 
+/*
+   Re-enforce the HTML [hidden] attribute.
+
+   WHY THIS IS NEEDED:
+   The browser's built-in rule for [hidden] is just "display: none",
+   with no "!important". This means any CSS rule that sets a different
+   display value (like "display: flex" or "display: grid") on the same
+   element will OVERRIDE the hidden behaviour, making the element
+   visible even when hidden="true" is set in the HTML.
+
+   A real example in this project: .joke-combobox__panel has
+   "display: flex" in styles.css. Without this rule, the panel would
+   always be visible on screen, even when its hidden attribute is set
+   by JavaScript to close the dropdown.
+
+   The !important here beats any other display rule, so [hidden] always
+   means "this element is invisible" regardless of other CSS.
+*/
+[hidden] {
+    display: none !important;
+}
+
 
 /* ============================================================
    SECTION 2 — CSS CUSTOM PROPERTIES (VARIABLES)

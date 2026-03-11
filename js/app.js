@@ -554,16 +554,29 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     /**
-     * Closes the combobox panel and returns focus to the trigger button.
+     * Closes the combobox panel.
+     *
+     * @param {boolean} [returnFocus=false] - When true, moves focus back to the
+     *   trigger button after closing. Pass true when closing via keyboard (Escape
+     *   or Tab) so keyboard users can continue tabbing through the page from a
+     *   predictable position. Pass false (or omit) when closing via a mouse click,
+     *   so we do NOT steal focus away from whatever the user just clicked on.
      */
-    function closeCombobox() {
+    function closeCombobox(returnFocus) {
         jokeComboboxPanel.hidden = true;
         jokeComboboxTrigger.setAttribute('aria-expanded', 'false');
         jokeComboboxTrigger.removeAttribute('aria-activedescendant');
         activeIndex = -1;
 
-        /* Return focus to the trigger so keyboard users can tab forward */
-        jokeComboboxTrigger.focus();
+        /*
+           Only return focus to the trigger when closing via keyboard.
+           When closing via mouse click, the browser naturally moves focus
+           to whatever was clicked — calling focus() here would steal that
+           focus away, which is disruptive and confusing for the user.
+        */
+        if (returnFocus) {
+            jokeComboboxTrigger.focus();
+        }
     }
 
 
@@ -749,24 +762,28 @@ document.addEventListener('DOMContentLoaded', function () {
             /*
                Confirm the highlighted option, or if nothing is highlighted
                but there is exactly one visible result, select that one.
+               Pass returnFocus=true so the trigger is focused after selection,
+               keeping the keyboard flow predictable for the user.
             */
             e.preventDefault();
             if (activeIndex >= 0 && visibleOptions[activeIndex]) {
                 selectOption(visibleOptions[activeIndex]);
-                closeCombobox();
+                closeCombobox(true);
             } else if (visibleOptions.length === 1) {
                 selectOption(visibleOptions[0]);
-                closeCombobox();
+                closeCombobox(true);
             }
 
         } else if (e.key === 'Escape') {
-            /* Close without changing the selection */
-            closeCombobox();
+            /* Close without changing the selection; return focus to trigger. */
+            closeCombobox(true);
 
         } else if (e.key === 'Tab') {
             /*
                Tab closes the panel. We do NOT preventDefault here so that
                tab focus continues moving forward in the page normally.
+               We also do NOT return focus to the trigger — we let the browser
+               move focus to the next focusable element as usual.
             */
             closeCombobox();
         }
