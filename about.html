@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<!--
+  about.html — About page for Math Jokes Worksheet Generator
+
+  PURPOSE:
+  This page describes what the site is, who it is for, and how it
+  was made. It serves two audiences:
+
+    1. Human visitors (teachers, parents) who want to know more
+       before trusting the tool with their class.
+    2. Automated content-classification crawlers (Zscaler, Forcepoint,
+       Symantec WebPulse, etc.) that read visible page text to decide
+       what category a site belongs to. A clear, keyword-rich "About"
+       page is one of the strongest signals these systems use.
+
+  DESIGN DECISION — no JavaScript:
+  This page contains no <script> tags. It is pure HTML + CSS.
+  There is nothing interactive here, so JavaScript is unnecessary.
+  Simpler pages load faster and give crawlers nothing to block on.
+-->
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>About — Math Jokes Worksheet Generator</title>
+
+  <meta name="description" content="About Math Jokes Worksheet Generator — a free educational tool for elementary school teachers to create printable math worksheets that decode a silly joke.">
+
+  <meta name="keywords" content="math worksheets, printable worksheets, elementary math, education, teachers, classroom, free educational tool, kids math, addition, subtraction, multiplication, division">
+
+  <meta name="category" content="Education">
+
+  <link rel="canonical" href="https://mathjokes.org/about.html">
+
+  <meta property="og:title"       content="About — Math Jokes Worksheet Generator">
+  <meta property="og:description" content="A free educational tool that creates printable math worksheets for elementary school classrooms.">
+  <meta property="og:type"        content="website">
+  <meta property="og:url"         content="https://mathjokes.org/about.html">
+
+  <meta name="twitter:card"        content="summary">
+  <meta name="twitter:title"       content="About — Math Jokes Worksheet Generator">
+  <meta name="twitter:description" content="A free educational tool that creates printable math worksheets for elementary school classrooms.">
+
+  <link rel="icon" type="image/png" href="favicon.png">
+
+  <!--
+    JSON-LD for this page — describes the site itself, not just this page,
+    so content classifiers that land on /about.html get the same rich
+    educational signals as the main page.
+  -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": ["EducationalApplication", "SoftwareApplication"],
+    "name": "Math Jokes Worksheet Generator",
+    "description": "Free printable math worksheets for elementary school teachers and students. Solve addition, subtraction, multiplication, and division problems to decode a silly joke.",
+    "applicationCategory": "EducationalApplication",
+    "educationalLevel": "Elementary School",
+    "url": "https://mathjokes.org/",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "audience": [
+      {
+        "@type": "EducationalAudience",
+        "educationalRole": "teacher"
+      },
+      {
+        "@type": "EducationalAudience",
+        "educationalRole": "student"
+      }
+    ]
+  }
+  </script>
+
+  <!-- Same stylesheets as index.html — gives the page a consistent look -->
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+
+  <!-- =====================================================
+       PAGE HEADER
+       ===================================================== -->
+  <header class="page-header" role="banner">
+    <h1 class="page-header__title">Math Jokes Worksheet Generator</h1>
+    <p class="page-header__subtitle">
+      A free educational tool for elementary school teachers and parents
+    </p>
+  </header>
+
+
+  <!-- =====================================================
+       MAIN CONTENT
+       ===================================================== -->
+  <main class="page-main" role="main">
+
+    <section class="card" aria-labelledby="about-title" style="max-width: 65ch; margin: 0 auto;">
+
+      <h2 class="card__title" id="about-title">About This Site</h2>
+
+      <!-- - - - - - - - - - - - - - - - - - - - - - - - -
+           DRAFT TEXT — please edit this section before
+           publishing. Notes for the editor:
+             * Adjust the origin story to match the real one.
+             * Confirm the grade range (K–5? 2–5?).
+             * Confirm the joke count ("dozens" or a real number).
+             * Add your name / organisation if you want attribution.
+           - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+      <p style="margin-bottom: var(--space-4);">
+        Math Jokes Worksheet Generator is a free tool for elementary school
+        teachers and parents. It creates printable PDF math worksheets with a
+        fun twist: students solve math problems to decode the punchline of a
+        silly joke.
+      </p>
+
+      <h3 style="margin-bottom: var(--space-2);">Who it is for</h3>
+      <p style="margin-bottom: var(--space-4);">
+        The tool is designed for educators teaching grades 1 through 5. It
+        covers over 46 skill levels across addition, subtraction,
+        multiplication, and division — from single-digit facts all the way up
+        to two-digit by two-digit multiplication. Teachers choose the skill
+        level that matches their current unit, generate a worksheet in seconds,
+        and print it directly from the browser.
+      </p>
+
+      <h3 style="margin-bottom: var(--space-2);">How it works</h3>
+      <p style="margin-bottom: var(--space-4);">
+        Each worksheet contains a set of math problems. Every problem is
+        labeled with a letter. Solving the problem gives a code number; finding
+        that code number in the decode grid at the top of the page reveals
+        which letter goes in that box. When all boxes are filled in, the
+        punchline of the joke appears. Students are motivated to check their
+        own work — a wrong answer means the joke does not make sense.
+      </p>
+
+      <h3 style="margin-bottom: var(--space-2);">Why it is free</h3>
+      <p style="margin-bottom: var(--space-4);">
+        [DRAFT — add a sentence here about why the site is free and who made
+        it. For example: "This site was built as a personal project by
+        [name/organisation] and is offered free of charge to support
+        classroom teachers."]
+      </p>
+
+      <h3 style="margin-bottom: var(--space-2);">Privacy</h3>
+      <p style="margin-bottom: var(--space-4);">
+        No account is required. No personal information is collected. All
+        worksheet generation happens inside your browser — nothing is sent to
+        a server. The only data stored on your device is your last-used problem
+        type, saved in your browser's local storage so the page remembers your
+        preference between visits.
+      </p>
+
+      <p>
+        <a href="index.html">&larr; Back to the worksheet generator</a>
+      </p>
+
+    </section>
+
+  </main><!-- end .page-main -->
+
+
+  <!-- =====================================================
+       PAGE FOOTER
+       ===================================================== -->
+  <footer class="page-footer" role="contentinfo">
+    <p>Math Jokes Worksheet Generator &mdash; a free resource for teachers and parents.</p>
+    <p style="margin-top: var(--space-2);">
+      PDF generation powered by
+      <a href="https://github.com/parallax/jsPDF" target="_blank" rel="noopener noreferrer">jsPDF</a>.
+      &nbsp;&middot;&nbsp;
+      <a href="about.html">About</a>
+    </p>
+  </footer>
+
+</body>
+</html>

@@ -59,6 +59,23 @@
   <meta name="description" content="Free printable math worksheets with a fun twist — solve the problems to decode a silly joke! Choose from 34+ math skills covering addition, subtraction, multiplication, and division.">
 
   <!--
+    Keywords meta tag — lists the main topics covered by this page.
+    Search engines largely ignore this for ranking (Google stopped using
+    it around 2009), but content classification systems used by enterprise
+    web filters (e.g. Zscaler, Forcepoint) still read it to categorise the
+    site. Keeping the list short and accurate is best practice.
+  -->
+  <meta name="keywords" content="math worksheets, printable worksheets, elementary math, education, teachers, classroom, addition, subtraction, multiplication, division, free worksheets, kids math">
+
+  <!--
+    Category meta tag — a legacy tag that some web-filtering and content-
+    classification systems (including Zscaler) still check to determine what
+    kind of site this is. "Education" is the correct DMOZ/ODP category for
+    a free classroom teaching tool.
+  -->
+  <meta name="category" content="Education">
+
+  <!--
     Canonical tag — tells search engines that this URL is the "official"
     version of the page. This prevents duplicate-content issues if the
     site is ever reachable via www., http://, or other variations.
@@ -94,27 +111,43 @@
   <!--
     JSON-LD structured data — a machine-readable description of this page
     that search engines (especially Google) use to understand its content.
-    SoftwareApplication + EducationalApplication signals that this is a
-    free educational tool, which can unlock rich result features.
     This script tag is invisible to users; it only communicates with bots.
+
+    Changes from the original:
+    - @type is now an ARRAY listing both EducationalApplication and
+      SoftwareApplication. EducationalApplication is listed first so it is
+      treated as the primary type. This gives content classifiers the clearest
+      possible signal that this is an educational tool.
+    - educationalLevel added: tells classifiers the intended grade range.
+    - description is more specific, naming the subject area and audience.
+    - audience is now an array covering both teachers and students, since
+      teachers are the primary users of the site (they generate the worksheets)
+      and students are the end users of the printed worksheets.
   -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
+    "@type": ["EducationalApplication", "SoftwareApplication"],
     "name": "Math Jokes Worksheet Generator",
-    "description": "Create free printable math worksheets where solving problems reveals a silly joke.",
+    "description": "Free printable math worksheets for elementary school teachers and students. Solve addition, subtraction, multiplication, and division problems to decode a silly joke.",
     "applicationCategory": "EducationalApplication",
+    "educationalLevel": "Elementary School",
     "url": "https://mathjokes.org/",
     "offers": {
       "@type": "Offer",
       "price": "0",
       "priceCurrency": "USD"
     },
-    "audience": {
-      "@type": "EducationalAudience",
-      "educationalRole": "student"
-    }
+    "audience": [
+      {
+        "@type": "EducationalAudience",
+        "educationalRole": "teacher"
+      },
+      {
+        "@type": "EducationalAudience",
+        "educationalRole": "student"
+      }
+    ]
   }
   </script>
 
@@ -686,6 +719,8 @@
     <p style="margin-top: var(--space-2);">
       PDF generation powered by
       <a href="https://github.com/parallax/jsPDF" target="_blank" rel="noopener noreferrer">jsPDF</a>.
+      &nbsp;&middot;&nbsp;
+      <a href="about.html">About</a>
     </p>
   </footer>
 
